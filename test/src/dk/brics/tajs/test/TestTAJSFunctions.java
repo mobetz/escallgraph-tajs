@@ -1,0 +1,95 @@
+package dk.brics.tajs.test;
+
+import dk.brics.tajs.Main;
+import dk.brics.tajs.options.Options;
+import dk.brics.tajs.util.AnalysisException;
+import dk.brics.tajs.util.AnalysisResultException;
+import org.junit.Before;
+import org.junit.Test;
+
+public class TestTAJSFunctions {
+
+    @Before
+    public void init() {
+        Main.reset();
+        Options.get().enableTest();
+    }
+
+    @Test
+    public void asyncEvents2() {
+        Options.get().enableAsyncEvents();
+        Misc.runSource(
+                "function f(){TAJS_dumpValue('executed');}",
+                "TAJS_asyncListen(f);",
+                "");
+        Misc.checkSystemOutput();
+    }
+
+    @Test
+    public void tajsMake() throws Exception {
+        Misc.runSource("TAJS_assert(TAJS_make('AnyBool'), 'isMaybeAnyBool');",
+                "TAJS_assert(TAJS_make('AnyBool'), 'isMaybeAnyStr', false);",
+                "TAJS_assert(TAJS_make('AnyStr'), 'isMaybeAnyStr');",
+                "TAJS_assert(TAJS_make('AnyStr'), 'isMaybeAnyBool', false);");
+    }
+
+    @Test(expected = AnalysisException.class)
+    public void tajsMake_fail() throws Exception {
+        Misc.runSource("TAJS_make('x');");
+    }
+
+    @Test
+    public void tajsJoin() throws Exception {
+        Misc.runSource("TAJS_assert(TAJS_join(true, false), 'isMaybeAnyBool');",
+                "TAJS_assert(TAJS_join(true, 'foo'), 'isMaybeAnyBool', false);");
+    }
+
+    @Test
+    public void tajsAssertEquals() throws Exception {
+        Misc.runSource("TAJS_assertEquals(true, true);",
+                "TAJS_assertEquals(TAJS_make('AnyBool'), TAJS_make('AnyBool'), true);",
+                "TAJS_assertEquals(true, false, false);",
+                "TAJS_assertEquals(TAJS_make('AnyBool'), false, false);",
+                "TAJS_assertEquals(false, true, false);",
+                "TAJS_assertEquals(false, TAJS_make('AnyBool'), false);");
+    }
+
+    @Test(expected = AnalysisException.class)
+    public void tajsAssertEqualsFail1() throws Exception {
+        Misc.runSource("TAJS_assertEquals();");
+    }
+
+    @Test(expected = AnalysisException.class)
+    public void tajsAssertEqualsFail2() throws Exception {
+        Misc.runSource("TAJS_assertEquals(true, true, true, true);");
+    }
+
+    @Test(expected = AnalysisException.class)
+    public void tajsAssertEqualsFail3() throws Exception {
+        Misc.runSource("TAJS_assertEquals(true, true, TAJS_make('AnyBool'));");
+    }
+
+    @Test(expected = AnalysisException.class)
+    public void tajsAssertEqualsFail4() throws Exception {
+        Misc.runSource("TAJS_assertEquals(true, true, 'foo');");
+    }
+
+    @Test(expected = AnalysisResultException.class)
+    public void uninvoked__TAJS_assert() {
+        Misc.runSource(
+                "if(false)TAJS_assert(true);"
+        );
+    }
+
+    @Test(expected = AnalysisResultException.class)
+    public void uninvoked__TAJS_assertEquals() {
+        Misc.runSource(
+                "if(false)TAJS_assertEquals(true, true);"
+        );
+    }
+
+    @Test
+    public void uninvoked__TAJS_assertFalse() {
+        Misc.runSource("if(false)TAJS_assert(false);");
+    }
+}

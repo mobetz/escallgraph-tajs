@@ -1,0 +1,47 @@
+package dk.brics.tajs.test.nativeobjects;
+
+import dk.brics.tajs.Main;
+import dk.brics.tajs.options.Options;
+import dk.brics.tajs.test.Misc;
+import org.junit.Before;
+import org.junit.Test;
+
+@SuppressWarnings("static-method")
+public class JSString_substr_test {
+
+    @Before
+    public void before() {
+        Main.reset();
+        Options.get().enableTest();
+    }
+
+    @Test
+    public void noArgs() {
+        Misc.runSource("var v = 'foo'.substr();",
+                "TAJS_assert(v === 'foo');");
+    }
+
+    @Test
+    public void posArg() {
+        Misc.runSource("var v = 'foo'.substr(1);",
+                "TAJS_assert(v === 'oo');");
+    }
+
+    @Test
+    public void negArg() {
+        Misc.runSource("var v = 'foo'.substr(-1);",
+                "TAJS_assert(v === 'o');");
+    }
+
+    @Test
+    public void interval() {
+        Misc.runSource("var v = 'foo'.substr(1, 2);",
+                "TAJS_assert(v === 'oo');");
+    }
+
+    @Test
+    public void unknown() {
+        Misc.runSource("var v = 'foo'.substr(Math.random(), 2);",
+                "TAJS_assert(v, 'isMaybeAnyStr', true);");
+    }
+}

@@ -1,0 +1,16 @@
+var a = eval();
+TAJS_dumpValue(a);
+TAJS_assertEquals(undefined, a);
+var b0 = 9.11;
+var b = eval(b0);
+TAJS_dumpValue(b);
+TAJS_assertEquals(b0, b);
+var c0 = new Boolean(b);
+var c = eval(c0);
+TAJS_dumpValue(c);
+TAJS_assertEquals(c0, c);
+var d = eval("function funfun(x) { funfun(x); }");
+TAJS_dumpValue(d);
+TAJS_dumpObject(d);
+var f = d(1,2,3,4);
+TAJS_dumpValue(f);
