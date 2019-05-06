@@ -1,6 +1,6 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.helloRetail.name}-event-writer-api
+service: helloRetail-event-writer-api
 
 custom:
   stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
@@ -11,16 +11,16 @@ custom:
   eventWriterApiVersion: 1 # The version of this service to depend upon
   eventWriterApi: ${self:} # externally, use `${file(~/event-writer/serverless.yml)}`, replacing the `~` therein with the appropriate relative reference [e.g. '..' or '../..']
   # Exports
-  exportEventWriterRestApi: ${self:custom.eventWriterApi.service}:${self:custom.stage}:EventWriterRestApi:${self:custom.eventWriterApiVersion}
+  exportEventWriterRestApi: ${self:custom.eventWriterApi.service}:dev:EventWriterRestApi:${self:custom.eventWriterApiVersion}
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
   environment:
-    STAGE: ${self:custom.stage}
+    STAGE: dev
 
 functions:
   eventWriter:
@@ -52,14 +52,14 @@ resources:
     EventWriterLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-eventWriter
+        LogGroupName: /aws/lambda/${self:service}-dev-eventWriter
         RetentionInDays: 7
 
     EventWriter: # role for the Event Writer Lambda to write to logs and the Kinesis Stream (retailStream)
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}EventWriter${self:custom.eventWriterApiVersion}
+        RoleName: devEventWriter${self:custom.eventWriterApiVersion}
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -68,7 +68,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:

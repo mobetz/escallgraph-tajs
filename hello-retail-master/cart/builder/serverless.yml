@@ -1,6 +1,6 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.helloRetail.name}-cart-builder
+service: helloRetail-cart-builder
 
 custom:
   stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
@@ -10,15 +10,15 @@ custom:
   retailStream: ${file(../../retail-stream/serverless.yml)}
   cartBuilder: ${self:}
   # Exports
-  exportCartTableName: ${self:custom.cartBuilder.service}:${self:custom.stage}:CartTableName
-  exportCartTableArn: ${self:custom.cartBuilder.service}:${self:custom.stage}:CartTableArn
+  exportCartTableName: ${self:custom.cartBuilder.service}:dev:CartTableName
+  exportCartTableArn: ${self:custom.cartBuilder.service}:dev:CartTableArn
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs4.3
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   cart:
@@ -30,7 +30,7 @@ functions:
         Ref: Cart
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/${self:custom.stage}RetailStream'
+          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream'
           enabled: true
           startingPosition: TRIM_HORIZON
 
@@ -40,7 +40,7 @@ resources:
     CartLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-cart
+        LogGroupName: /aws/lambda/${self:service}-dev-cart
         RetentionInDays: 7
     # Cart Table
     Cart:
@@ -59,13 +59,13 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.stage}-Cart
+        TableName: dev-Cart
     # Cart Roles
     CartBuilder: # role for the Cart Lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}CartBuilder
+        RoleName: devCartBuilder
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -79,7 +79,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:

@@ -12,10 +12,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 resources:
   Resources:
@@ -29,16 +29,16 @@ resources:
         Type: AWS::IAM::Role
         Properties:
           Path: /
-          RoleName: ${self:custom.stage}ProductPhotosStepFunction${self:custom.productPhotos.productPhotosVersion}
+          RoleName: devProductPhotosStepFunction${self:custom.productPhotos.productPhotosVersion}
           AssumeRolePolicyDocument:
             Version: '2012-10-17'
             Statement:
             - Effect: Allow
               Action: sts:AssumeRole
               Principal:
-                Service: states.${self:custom.private.region}.amazonaws.com
+                Service: states.us-east-1.amazonaws.com
           ManagedPolicyArns:
-            - ${self:custom.private.teamPolicy}
+            - DEFAULT_TEAM_POLICY
           Policies:
             - PolicyName: InvokeLambdas
               PolicyDocument:

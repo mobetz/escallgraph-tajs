@@ -1,6 +1,6 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.helloRetail.name}-cart-api
+service: helloRetail-cart-api
 
 custom:
   stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
@@ -14,10 +14,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs4.3
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   products:
@@ -25,8 +25,7 @@ functions:
       Fn::GetAtt: [ CartApiProductsReader, Arn ]
     handler: cartApi.products
     environment:
-      TABLE_CART_NAME:
-        Fn::ImportValue: ${self:custom.cartBuilder.custom.exportCartTableName}
+      TABLE_CART_NAME: CART_TABLE
     events:
       - http:
           path: products
@@ -38,13 +37,13 @@ resources:
     ProductsLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-products
+        LogGroupName: /aws/lambda/${self:service}-dev-products
         RetentionInDays: 7
     CartApiProductsReader: # role for Products Lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}CartApiProductsReader${self:custom.cartApiVersion}
+        RoleName: devCartApiProductsReader${self:custom.cartApiVersion}
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -53,7 +52,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream #TODO What should this be??
             PolicyDocument:

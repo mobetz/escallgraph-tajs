@@ -1,6 +1,6 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.helloRetail.name}-product-catalog-builder
+service: helloRetail-product-catalog-builder
 
 custom:
   stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
@@ -13,18 +13,18 @@ custom:
   productCatalogBuilderVersion: 1 # The version of this service to depend upon
   productCatalogBuilder: ${self:} # externally, use `${file(~/product-catalog/serverless.yml)}`, replacing the `~` therein with the appropriate relative reference [e.g. '..' or '../..']
   # Exports
-  exportProductCategoryTableName: ${self:custom.productCatalogBuilder.service}:${self:custom.stage}:ProductCategoryTableName:${self:custom.productCatalogBuilderVersion}
-  exportProductCategoryTableArn: ${self:custom.productCatalogBuilder.service}:${self:custom.stage}:ProductCategoryTableArn:${self:custom.productCatalogBuilderVersion}
-  exportProductCatalogTableName: ${self:custom.productCatalogBuilder.service}:${self:custom.stage}:ProductCatalogTableName:${self:custom.productCatalogBuilderVersion}
-  exportProductCatalogTableArn: ${self:custom.productCatalogBuilder.service}:${self:custom.stage}:ProductCatalogTableArn:${self:custom.productCatalogBuilderVersion}
-  exportProductCatalogTableCategoryIndexArn: ${self:custom.productCatalogBuilder.service}:${self:custom.stage}:ProductCatalogTableCategoryIndexArn:${self:custom.productCatalogBuilderVersion}
+  exportProductCategoryTableName: ${self:custom.productCatalogBuilder.service}:dev:ProductCategoryTableName:${self:custom.productCatalogBuilderVersion}
+  exportProductCategoryTableArn: ${self:custom.productCatalogBuilder.service}:dev:ProductCategoryTableArn:${self:custom.productCatalogBuilderVersion}
+  exportProductCatalogTableName: ${self:custom.productCatalogBuilder.service}:dev:ProductCatalogTableName:${self:custom.productCatalogBuilderVersion}
+  exportProductCatalogTableArn: ${self:custom.productCatalogBuilder.service}:dev:ProductCatalogTableArn:${self:custom.productCatalogBuilderVersion}
+  exportProductCatalogTableCategoryIndexArn: ${self:custom.productCatalogBuilder.service}:dev:ProductCatalogTableCategoryIndexArn:${self:custom.productCatalogBuilderVersion}
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   catalog:
@@ -38,7 +38,7 @@ functions:
         Ref: ProductCatalog
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/${self:custom.stage}RetailStream' # replace this with the below, once supported by Serverless
+          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream' # replace this with the below, once supported by Serverless
 #            Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamArn}
           enabled: true
           startingPosition: TRIM_HORIZON
@@ -49,7 +49,7 @@ resources:
     CatalogLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-catalog
+        LogGroupName: /aws/lambda/${self:service}-dev-catalog
         RetentionInDays: 7
     # Product Catalog Tables
     ProductCategory:
@@ -64,7 +64,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.stage}-ProductCategory-${self:custom.productCatalogBuilderVersion}
+        TableName: dev-ProductCategory-${self:custom.productCatalogBuilderVersion}
     ProductCatalog:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -81,7 +81,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.stage}-ProductCatalog-${self:custom.productCatalogBuilderVersion}
+        TableName: dev-ProductCatalog-${self:custom.productCatalogBuilderVersion}
         GlobalSecondaryIndexes:
           - IndexName: Category
             KeySchema:
@@ -102,7 +102,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}ProductCatalogBuilder${self:custom.productCatalogBuilderVersion}
+        RoleName: devProductCatalogBuilder${self:custom.productCatalogBuilderVersion}
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -116,7 +116,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:
@@ -174,7 +174,7 @@ resources:
       Value:
         Ref: ProductCategory
       Export:
-        Name: ${self:custom.productCatalogBuilder.custom.exportProductCategoryTableName}
+        Name: PRODUCT_CATEGORY_TABLE
     ProductCategoryTableArn:
       Description: The ARN for the Product Category Table
       Value:
@@ -183,13 +183,13 @@ resources:
           - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
             - Ref: ProductCategory
       Export:
-        Name: ${self:custom.productCatalogBuilder.custom.exportProductCategoryTableArn}
+        Name: PRODUCT_CATEGORY_TABLE
     ProductCatalogTableName:
       Description: The Name of the Product Catalog Table
       Value:
         Ref: ProductCatalog
       Export:
-        Name: ${self:custom.productCatalogBuilder.custom.exportProductCatalogTableName}
+        Name: PRODUCT_TABLE
     ProductCatalogTableArn:
       Description: The ARN for the Product Catalog Table
       Value:
@@ -209,4 +209,4 @@ resources:
             - index
             - Category
       Export:
-        Name: ${self:custom.productCatalogBuilder.custom.exportProductCatalogTableCategoryIndexArn}
+        Name: PRODUCT_CATALOG_TABLE_INDEX

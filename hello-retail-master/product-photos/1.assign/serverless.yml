@@ -10,10 +10,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   assign:
@@ -30,14 +30,14 @@ resources:
     AssignLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: '/aws/lambda/${self:service}-${self:custom.stage}-assign'
+        LogGroupName: '/aws/lambda/${self:service}-dev-assign'
         RetentionInDays: 7
     # Role
     AssignRole: # role for the assignment creation lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}ProductPhotosAssign${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosAssign${self:custom.productPhotos.productPhotosVersion}
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -46,7 +46,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:

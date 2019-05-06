@@ -10,10 +10,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 resources:
   Resources:
@@ -35,7 +35,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.stage}-${self:service}-PhotoRegistrations-${self:custom.productPhotos.productPhotosVersion}
+        TableName: dev-${self:service}-PhotoRegistrations-${self:custom.productPhotos.productPhotosVersion}
         GlobalSecondaryIndexes:
           - IndexName: Assignments
             KeySchema:
@@ -63,7 +63,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: ${self:custom.stage}-${self:service}-PhotoAssignments-${self:custom.productPhotos.productPhotosVersion}
+        TableName: dev-${self:service}-PhotoAssignments-${self:custom.productPhotos.productPhotosVersion}
   Outputs:
     # Registrations
     PhotoRegistrationsTableName:

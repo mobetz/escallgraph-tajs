@@ -5,9 +5,65 @@ var AJV = require('ajv');
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
 
 
-var productsRequestSchema = require('./products-request-schema.json');
+var productsRequestSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "products/request",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "path":                   { "type": "string", "pattern": "^/products$" },
+    "httpMethod":             { "type": "string", "pattern": "^GET$" },
+    "queryStringParameters":  {
+      "type": "object",
+      "properties": {
+        "category":           { "type": "string" }
+      },
+      "required": [
+        "category"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "path",
+    "httpMethod",
+    "queryStringParameters"
+  ],
+  "additionalProperties": true
+};
 
-var productItemsSchema = require('./product-items-schema.json');
+var productItemsSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product/items",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "id":           { "type": "string", "pattern": "^[\\d]+$" },
+      "brand":        { "type": "string" },
+      "name":         { "type": "string" },
+      "description":  { "type": "string" },
+      "image":        { "type": "string" }
+    },
+    "required": [
+      "id",
+      "user id",
+      "name"
+    ],
+    "additionalProperties": false
+  },
+  "additionalProperties": false
+};
+
 
 var makeSchemaId = function makeSchemaId(schema) {
   return "".concat(schema.self.vendor, "/").concat(schema.self.name, "/").concat(schema.self.version);

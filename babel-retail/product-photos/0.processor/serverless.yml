@@ -12,10 +12,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   processor:
@@ -23,15 +23,15 @@ functions:
       'Fn::GetAtt': [ ProcessorRole, Arn ]
     handler: processor.processKinesisEvent
     environment:
-      ASSIGNMENTS_PER_REGISTRATION: ${self:custom.private.behaviors.assignmentsPerRegistration.${self:custom.stage}, self:custom.private.behaviors.assignmentsPerRegistration.default}
-      STAGE: ${self:custom.stage}
+      ASSIGNMENTS_PER_REGISTRATION: ${self:custom.private.behaviors.assignmentsPerRegistration.dev, self:custom.private.behaviors.assignmentsPerRegistration.default}
+      STAGE: dev
       STEP_FUNCTION:
         'Fn::ImportValue': ${self:custom.productPhotos.exportPhotoAssignmentsStepFunctionArn}
       TABLE_PHOTO_REGISTRATIONS_NAME:
         'Fn::ImportValue': ${self:custom.productPhotos.exportPhotoRegistrationsTableName}
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/${self:custom.stage}RetailStream' # replace this with the below, once supported by Serverless
+          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream' # replace this with the below, once supported by Serverless
 #            Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamArn}
           enabled: true
           startingPosition: TRIM_HORIZON
@@ -42,14 +42,14 @@ resources:
     ProcessorLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: '/aws/lambda/${self:service}-${self:custom.stage}-processor'
+        LogGroupName: '/aws/lambda/${self:service}-dev-processor'
         RetentionInDays: 7
     # Role
     ProcessorRole: # role for the photo assignment step function execution kick-off lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}ProductPhotosProcessor${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosProcessor${self:custom.productPhotos.productPhotosVersion}
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -58,7 +58,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:

@@ -1,6 +1,6 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.helloRetail.name}-product-catalog-api
+service: helloRetail-product-catalog-api
 
 custom:
   stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
@@ -14,10 +14,10 @@ custom:
 
 provider:
   name: aws
-  deploymentBucket: ${self:custom.helloRetail.deploymentBucket}
+  deploymentBucket: helloRetailBucket
   runtime: nodejs8.10
-  profile: ${self:custom.private.profile}
-  region: ${self:custom.private.region}
+  profile: DEFAULT_PROFILE
+  region: us-east-1
 
 functions:
   categories:
@@ -26,7 +26,7 @@ functions:
     handler: catalogApi.categories
     environment:
       TABLE_PRODUCT_CATEGORY_NAME:
-        Fn::ImportValue: ${self:custom.productCatalogBuilder.custom.exportProductCategoryTableName}
+        Fn::ImportValue: PRODUCT_CATEGORY_TABLE
     events:
       - http:
           path: categories
@@ -38,7 +38,7 @@ functions:
     handler: catalogApi.products
     environment:
       TABLE_PRODUCT_CATALOG_NAME:
-        Fn::ImportValue: ${self:custom.productCatalogBuilder.custom.exportProductCatalogTableName}
+        Fn::ImportValue: PRODUCT_TABLE
     events:
       - http:
           path: products
@@ -51,19 +51,19 @@ resources:
     CategoriesLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-categories
+        LogGroupName: /aws/lambda/${self:service}-dev-categories
         RetentionInDays: 7
     ProductsLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: /aws/lambda/${self:service}-${self:custom.stage}-products
+        LogGroupName: /aws/lambda/${self:service}-dev-products
         RetentionInDays: 7
     # Product Catalog Roles
     ProductCatalogApiCategoriesReader: # role for Categories Lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}ProductCatalogApiCategoriesReader${self:custom.productCatalogApiVersion}
+        RoleName: devProductCatalogApiCategoriesReader_v1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -72,7 +72,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:
@@ -99,12 +99,12 @@ resources:
                    Action:
                      - 'dynamodb:Scan'
                    Resource:
-                    Fn::ImportValue: ${self:custom.productCatalogBuilder.custom.exportProductCategoryTableArn}
+                    Fn::ImportValue: PRODUCT_CATEGORY_TABLE
     ProductCatalogApiProductsReader: # role for Products Lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: ${self:custom.stage}ProductCatalogApiProductsReader${self:custom.productCatalogApiVersion}
+        RoleName: devProductCatalogApiProductsReader_v1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
@@ -113,7 +113,7 @@ resources:
               Principal:
                 Service: lambda.amazonaws.com
         ManagedPolicyArns:
-          - ${self:custom.private.teamPolicy}
+          - DEFAULT_TEAM_POLICY
         Policies:
           - PolicyName: CreateAndWriteToLogStream
             PolicyDocument:
@@ -146,4 +146,4 @@ resources:
                    Action:
                      - 'dynamodb:Query'
                    Resource:
-                    Fn::ImportValue: ${self:custom.productCatalogBuilder.custom.exportProductCatalogTableCategoryIndexArn}
+                    Fn::ImportValue: PRODUCT_CATALOG_TABLE_INDEX
