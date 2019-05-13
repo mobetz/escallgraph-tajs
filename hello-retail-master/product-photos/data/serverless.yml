@@ -71,7 +71,7 @@ resources:
       Value:
         Ref: PhotoRegistrations
       Export:
-        Name: ${self:custom.productPhotos.exportPhotoRegistrationsTableName}
+        Name: PHOTO_REGISTRATION_TABLE
     PhotoRegistrationsTableArn:
       Description: The ARN for the Photo Registrations Table
       Value:

@@ -38,7 +38,7 @@ functions:
         Ref: ProductCatalog
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream' # replace this with the below, once supported by Serverless
+          arn: 'arn:aws:kinesis:us-east-1:XXX:stream/RETAIL_STREAM' # replace this with the below, once supported by Serverless
 #            Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamArn}
           enabled: true
           startingPosition: TRIM_HORIZON

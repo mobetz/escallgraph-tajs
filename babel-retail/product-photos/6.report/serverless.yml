@@ -24,11 +24,11 @@ functions:
     handler: report.handler
     environment:
       RETAIL_STREAM_NAME:
-        Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamName}
+        Fn::ImportValue: RETAIL_STREAM
       RETAIL_STREAM_WRITER_ARN:
         Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamWriterArn}
       TABLE_PHOTO_REGISTRATIONS_NAME:
-        Fn::ImportValue: ${self:custom.productPhotos.exportPhotoRegistrationsTableName}
+        Fn::ImportValue: PHOTO_REGISTRATION_TABLE
       TABLE_PHOTO_ASSIGNMENTS_NAME:
         Fn::ImportValue: ${self:custom.productPhotos.exportPhotoAssignmentsTableName}
 

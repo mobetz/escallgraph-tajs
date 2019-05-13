@@ -74,6 +74,7 @@ public enum TAJSFunctionName {
     TAJS_ADDASYNCIOCALLBACK("addAsyncIOCallback"),
     TAJS_MAKEGENERICERROR("makeGenericError"),
 
+    TAJS_SERVERLESS("serverless");
     ;
 
     private String string;

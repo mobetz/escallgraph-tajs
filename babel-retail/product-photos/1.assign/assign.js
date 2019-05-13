@@ -24,12 +24,12 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
 
-
-var Promise = require('bluebird');
-
-Promise.config({
-  longStackTraces: true
-});
+//
+// var Promise = require('bluebird');
+//
+// Promise.config({
+//   longStackTraces: true
+// });
 var dynamo = new aws.DynamoDB.DocumentClient();
 /**
  * acquire photo states:

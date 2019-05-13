@@ -8,24 +8,166 @@ var AJV = require('ajv');
 
 var ajv = new AJV();
 
+
+var productPurchaseSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product/purchase",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id"
+  ],
+  "additionalProperties": false
+};
+
+var productCreateSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product/create",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" },
+    "brand":  { "type": "string" },
+    "name":  { "type": "string" },
+    "description": { "type": "string" },
+    "category": { "type": "string"}
+  },
+  "required": [
+    "schema",
+    "id",
+    "brand",
+    "name",
+    "description",
+    "category"
+  ],
+  "additionalProperties": false
+};
+
+var userLoginSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "user-info/login",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema": { "type": "string" },
+    "id":     { "type": "string" },
+    "name":   { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id",
+    "name"
+  ],
+  "additionalProperties": false
+};
+
+var updatePhoneSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "user-info/update-phone",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" },
+    "phone":  { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id",
+    "phone"
+  ],
+  "additionalProperties": false
+};
+
+var addRoleSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "user-info/add-role",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema": { "type": "string", "format": "url" },
+    "id":     { "type": "string" },
+    "role":   { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id",
+    "role"
+  ],
+  "additionalProperties": false
+}; // const addCartSchema = require('./schemas/product-cart-schema.json')
+
+
+var removeCartSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "cart/remove",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id"
+  ],
+  "additionalProperties": false
+};
+
+var addCartSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "cart/add",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id"
+  ],
+  "additionalProperties": false
+};
+
+
 var makeSchemaId = function makeSchemaId(schema) {
   return "".concat(schema.self.vendor, "/").concat(schema.self.name, "/").concat(schema.self.version);
 };
-
-var productPurchaseSchema = require('./schemas/product-purchase-schema.json');
-
-var productCreateSchema = require('./schemas/product-create-schema.json');
-
-var userLoginSchema = require('./schemas/user-login-schema.json');
-
-var updatePhoneSchema = require('./schemas/user-update-phone-schema.json');
-
-var addRoleSchema = require('./schemas/user-add-role-schema.json'); // const addCartSchema = require('./schemas/product-cart-schema.json')
-
-
-var removeCartSchema = require('./schemas/cart-remove-schema.json');
-
-var addCartSchema = require('./schemas/cart-add-schema.json');
 
 var productPurchaseSchemaId = makeSchemaId(productPurchaseSchema);
 var productCreateSchemaId = makeSchemaId(productCreateSchema);
@@ -63,18 +205,18 @@ var impl = {
     return impl.response(400, "".concat(constants.API_NAME, " ").concat(constants.INVALID_REQUEST, "  ").concat(error, ".  Event: '").concat(JSON.stringify(event), "'"));
   },
   kinesisError: function kinesisError(schemaName, err) {
-    console.log(err);
+    // console.log(err);
     return impl.response(500, "".concat(constants.API_NAME, " - ").concat(constants.INTEGRATION_ERROR, " trying to write an event for '").concat(JSON.stringify(schemaName), "'"));
   },
   success: function success(response) {
     return impl.response(200, JSON.stringify(response));
   },
   validateAndWriteKinesisEventFromApiEndpoint: function validateAndWriteKinesisEventFromApiEndpoint(event, callback) {
-    console.log(JSON.stringify(event));
+    // console.log(JSON.stringify(event));
     var eventData = JSON.parse(event.body);
-    console.log(eventData);
+    // console.log(eventData);
     var origin = eventData.origin;
-    console.log(origin);
+    // console.log(origin);
     delete eventData.origin;
 
     if (!eventData.schema || typeof eventData.schema !== 'string') {
@@ -98,7 +240,7 @@ var impl = {
           }),
           PartitionKey: eventData.id,
           // TODO if some schema use id field something other than the partition key, the schema need to have a keyName field and here code should be eventData[eventData.keyName]
-          StreamName: process.env.STREAM_NAME
+          StreamName: 'RETAIL_STREAM'
         };
         kinesis.putRecord(newEvent, function (err, data) {
           if (err) {
@@ -156,3 +298,5 @@ var api = {
 module.exports = {
   eventWriter: api.eventWriter
 };
+
+module.exports.eventWriter({body: TAJS_make('AnyStr')}, null, function() {});

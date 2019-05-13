@@ -1,4 +1,4 @@
-package dk.brics.tajs.util;
+package dk.brics.tajs.serverless;
 
 
 import dk.brics.tajs.analysis.nativeobjects.NodeJSRequire;
@@ -7,6 +7,7 @@ import dk.brics.tajs.flowgraph.HostEnvSources;
 import dk.brics.tajs.flowgraph.SourceLocation;
 import dk.brics.tajs.js2flowgraph.FlowGraphBuilder;
 import dk.brics.tajs.options.Options;
+import dk.brics.tajs.util.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -116,6 +117,8 @@ public class ServerlessYAMLParser {
 
             FlowGraphBuilder builder = FlowGraphBuilder.makeForMain(new SourceLocation.StaticLocationMaker(entrypoint_loc.toUri().toURL()));
             builder.addLoadersForHostFunctionSources(HostEnvSources.getAccordingToOptions());
+
+            NodeJSRequire.reset();
             NodeJSRequire.init();
 
 //        if (!Options.get().isQuietEnabled())

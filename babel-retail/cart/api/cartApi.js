@@ -2,7 +2,7 @@
 
 var AJV = require('ajv');
 
-var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
+var aws = require('aws-sdk');
 
 
 var productsRequestSchema = {
@@ -79,7 +79,7 @@ var constants = {
   // self
   MODULE: 'cart/cartApi.js',
   METHOD_PRODUCTS: 'products',
-  TABLE_CART_NAME: process.env.TABLE_CART_NAME,
+  TABLE_CART_NAME: 'CART_TABLE',
   INVALID_REQUEST: 'Invalid Request',
   INTEGRATION_ERROR: 'Integration Error',
   HASHES: '##########################################################################################',
@@ -104,15 +104,15 @@ var impl = {
     );
   },
   dynamoError: function dynamoError(err) {
-    console.log(err);
+    //console.log(err);
     return impl.response(500, "".concat(constants.METHOD_PRODUCTS, " - ").concat(constants.INTEGRATION_ERROR));
   },
   securityRisk: function securityRisk(schemaId, ajvErrors, items) {
-    console.log(constants.HASHES);
-    console.log(constants.SECURITY_RISK);
-    console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
-    console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
-    console.log(constants.HASHES);
+    // console.log(constants.HASHES);
+    // console.log(constants.SECURITY_RISK);
+    // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
+    // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
+    // console.log(constants.HASHES);
     return impl.response(500, "".concat(constants.METHOD_PRODUCTS, " - ").concat(constants.INTEGRATION_ERROR));
   },
   success: function success(items) {
@@ -185,3 +185,6 @@ var api = {
 module.exports = {
   products: api.products
 };
+
+
+api.products({queryStringParameters: { userId: TAJS_make('AnyStr')}}, {}, function () {});

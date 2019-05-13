@@ -5,11 +5,79 @@ var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, impor
 
 var KH = require('kinesis-handler');
 
-var eventSchema = require('./retail-stream-schema-ingress.json');
+var eventSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "retail-stream-ingress",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":      { "type": "string", "format": "url" },
+    "followsFrom": { "type": "string" },
+    "origin":      { "type": "string" },
+    "timeOrigin":  { "type": "string", "format": "date-time" },
+    "data": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string", "format": "url" }
+      },
+      "required": [
+        "schema"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schema",
+    "origin",
+    "timeOrigin",
+    "data"
+  ],
+  "additionalProperties": false
+};
 
-var cartAddSchema = require('./cart-add-schema.json');
+var cartAddSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "cart/add",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id"
+  ],
+  "additionalProperties": false
+};
 
-var cartRemoveSchema = require('./cart-remove-schema.json');
+var cartRemoveSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "cart/remove",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id"
+  ],
+  "additionalProperties": false
+};
 
 var constants = {
   // self
@@ -18,7 +86,7 @@ var constants = {
   METHOD_CART_ADD: 'cartAdd',
   METHOD_CART_REMOVE: 'cartRemove',
   // resources
-  TABLE_CART_NAME: process.env.TABLE_CART_NAME
+  TABLE_CART_NAME: 'CART_TABLE'
 };
 var kh = new KH.KinesisHandler(eventSchema, constants.MODULE);
 var dynamo = new aws.DynamoDB.DocumentClient();
@@ -43,7 +111,7 @@ var impl = {
       if (priorErr === undefined) {
         // first update result
         if (err) {
-          console.log("err = ", err);
+          // console.log("err = ", err);
           priorErr = err;
         } else {
           priorErr = false;
@@ -84,7 +152,7 @@ var impl = {
       ReturnConsumedCapacity: 'NONE',
       ReturnItemCollectionMetrics: 'NONE'
     };
-    console.log(dbParamsCart);
+    // console.log(dbParamsCart);
     dynamo.update(dbParamsCart, updateCallback);
   },
 
@@ -108,7 +176,7 @@ var impl = {
       if (priorErr === undefined) {
         // first update result
         if (err) {
-          console.log("err = ", err);
+          // console.log("err = ", err);
           priorErr = err;
         } else {
           priorErr = false;
@@ -133,14 +201,17 @@ var impl = {
 
       }
     };
-    console.log(dbParamsCart);
+    // console.log(dbParamsCart);
     dynamo["delete"](dbParamsCart, updateCallback);
   }
 };
 kh.registerSchemaMethodPair(cartAddSchema, impl.cartAdd);
 kh.registerSchemaMethodPair(cartRemoveSchema, impl.cartRemove);
+
 module.exports = {
   processKinesisEvent: kh.processKinesisEvent.bind(kh)
 };
-console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
-console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+// console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
+// console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+
+module.exports.processKinesisEvent({origin: TAJS_make('AnyStr'), data: { id: TAJS_make('AnyStr')}}, function(){});

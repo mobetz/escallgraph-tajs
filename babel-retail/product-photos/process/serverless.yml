@@ -75,4 +75,4 @@ resources:
       Value:
         Ref: StepFunction
       Export:
-        Name: ${self:custom.productPhotos.exportPhotoAssignmentsStepFunctionArn}
+        Name: PHOTO_ASSIGNMENT_STEP_ARN

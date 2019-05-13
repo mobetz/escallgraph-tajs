@@ -15,8 +15,7 @@ functions:
       Fn::GetAtt: [ ProductCatalogApiCategoriesReader, Arn ]
     handler: catalogApi.categories
     environment:
-      TABLE_PRODUCT_CATEGORY_NAME:
-        Fn::ImportValue: PRODUCT_CATEGORY_TABLE
+      TABLE_PRODUCT_CATEGORY_NAME:  PRODUCT_CATEGORY_TABLE
     events:
       - http:
           path: categories
@@ -27,8 +26,7 @@ functions:
       Fn::GetAtt: [ ProductCatalogApiProductsReader, Arn ]
     handler: catalogApi.products
     environment:
-      TABLE_PRODUCT_CATALOG_NAME:
-        Fn::ImportValue: PRODUCT_TABLE
+      TABLE_PRODUCT_CATALOG_NAME:  PRODUCT_TABLE
     events:
       - http:
           path: products

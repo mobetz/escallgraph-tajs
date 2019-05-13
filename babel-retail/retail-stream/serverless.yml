@@ -98,7 +98,7 @@ resources:
       Value:
         Ref: RetailStream
       Export:
-        Name: ${self:custom.retailStream.custom.exportRetailStreamName}
+        Name: RETAIL_STREAM
     RetailStreamArn:
       Description: The ARN for the Retail Stream
       Value:

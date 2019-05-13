@@ -6,11 +6,89 @@ var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, impor
 var KH = require('kinesis-handler'); // TODO Get these from a better place later
 
 
-var eventSchema = require('./retail-stream-schema-ingress.json');
+var eventSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "retail-stream-ingress",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":      { "type": "string", "format": "url" },
+    "followsFrom": { "type": "string" },
+    "origin":      { "type": "string" },
+    "timeOrigin":  { "type": "string", "format": "date-time" },
+    "data": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string", "format": "url" }
+      },
+      "required": [
+        "schema"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schema",
+    "origin",
+    "timeOrigin",
+    "data"
+  ],
+  "additionalProperties": false
+};
 
-var productCreateSchema = require('./product-create-schema.json');
+var productCreateSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product/create",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" },
+    "brand":  { "type": "string" },
+    "name":  { "type": "string" },
+    "description": { "type": "string" },
+    "category": { "type": "string"}
+  },
+  "required": [
+    "schema",
+    "id",
+    "brand",
+    "name",
+    "description",
+    "category"
+  ],
+  "additionalProperties": false
+};
 
-var productImageSchema = require('./product-image-schema.json');
+var productImageSchema = {
+      "$schema": "http://json-schema.org/schema#",
+      "self": {
+        "vendor": "com.nordstrom",
+        "name": "product/image",
+        "format": "jsonschema",
+        "version": "1-0-0"
+      },
+      "type": "object",
+      "properties": {
+        "schema":  { "type": "string", "format": "url" },
+        "id": { "type": "string" },
+        "image":  { "type": "string" }
+      },
+      "required": [
+        "schema",
+        "id",
+        "image"
+      ],
+      "additionalProperties": false
+    };
 
 var constants = {
   // self
@@ -19,8 +97,8 @@ var constants = {
   METHOD_PUT_PRODUCT: 'putProduct',
   METHOD_PUT_IMAGE: 'putImage',
   // resources
-  TABLE_PRODUCT_CATEGORY_NAME: process.env.TABLE_PRODUCT_CATEGORY_NAME,
-  TABLE_PRODUCT_CATALOG_NAME: process.env.TABLE_PRODUCT_CATALOG_NAME
+  TABLE_PRODUCT_CATEGORY_NAME: 'PRODUCT_CATEGORY_TABLE',
+  TABLE_PRODUCT_CATALOG_NAME: 'PRODUCT_TABLE'
 };
 var kh = new KH.KinesisHandler(eventSchema, constants.MODULE);
 var dynamo = new aws.DynamoDB.DocumentClient();
@@ -172,5 +250,15 @@ kh.registerSchemaMethodPair(productImageSchema, impl.putImage);
 module.exports = {
   processKinesisEvent: kh.processKinesisEvent.bind(kh)
 };
-console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
-console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+// console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
+// console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+
+
+module.exports.processKinesisEvent({origin: TAJS_make('AnyStr'), data: {
+  id: TAJS_make('AnyStr'),
+  image: TAJS_make('AnyStr'),
+  category: TAJS_make('AnyStr'),
+  description: TAJS_make('AnyStr'),
+  brand: TAJS_make('AnyStr'),
+  name: TAJS_make('AnyStr')
+}}, function(){});

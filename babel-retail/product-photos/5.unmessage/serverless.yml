@@ -22,7 +22,7 @@ functions:
     handler: unmessage.handler
     environment:
       TABLE_PHOTO_REGISTRATIONS_NAME:
-        Fn::ImportValue: ${self:custom.productPhotos.exportPhotoRegistrationsTableName}
+        Fn::ImportValue: PHOTO_REGISTRATION_TABLE
       TWILIO_ACCOUNT_SID_ENCRYPTED: ${self:custom.private.twilio.accountSid}
       TWILIO_AUTH_TOKEN_ENCRYPTED: ${self:custom.private.twilio.authToken}
       TWILIO_NUMBER: ${self:custom.private.twilio.dev.number}

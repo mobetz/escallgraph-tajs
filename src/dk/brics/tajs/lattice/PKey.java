@@ -162,8 +162,8 @@ abstract public class PKey implements Comparable<PKey>, DeepImmutable { // XXX: 
 
         @Override
         public boolean equals(Object o) {
-            if (!(o instanceof PKey))
-                throw new RuntimeException("Using " + o + "(" + o.getClass() + ") in place of PKey"); // FIXME: Remove when #332 is done
+            //if (!(o instanceof PKey))
+            //    throw new RuntimeException("Using " + o + "(" + o.getClass() + ") in place of PKey"); // FIXME: Remove when #332 is done
             return o instanceof StringPKey && getStr().equals(((StringPKey)o).getStr());
         }
 

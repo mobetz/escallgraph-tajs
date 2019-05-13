@@ -10,11 +10,95 @@ var KH = require('kinesis-handler');
 // TODO Get these from a better place later
 
 
-var eventSchema = require('./retail-stream-schema-egress.json');
+var eventSchema = {
+      "$schema": "http://json-schema.org/schema#",
+      "self": {
+        "vendor": "com.nordstrom",
+        "name": "retail-stream-egress",
+        "format": "jsonschema",
+        "version": "1-0-0"
+      },
+      "type": "object",
+      "properties": {
+        "schema":      { "type": "string" },
+        "followsFrom": { "type": "string" },
+        "origin":      { "type": "string" },
+        "timeOrigin":  { "type": "string", "format": "date-time" },
+        "data": {
+          "type": "object",
+          "properties": {
+            "schema": { "type": "string" }
+          },
+          "required": [
+            "schema"
+          ],
+          "additionalProperties": true
+        },
+        "eventId": { "type": "string" },
+        "timeIngest":  { "type": "string", "format": "date-time" },
+        "timeProcess": { "type": "string", "format": "date-time" }
+      },
+      "required": [
+        "schema",
+        "origin",
+        "timeOrigin",
+        "data",
+        "eventId",
+        "timeIngest",
+        "timeProcess"
+      ],
+      "additionalProperties": false
+    };
 
-var updatePhoneSchema = require('./user-update-phone-schema.json');
+var updatePhoneSchema = {
+      "$schema": "http://json-schema.org/schema#",
+      "self": {
+        "vendor": "com.nordstrom",
+        "name": "user-info/update-phone",
+        "format": "jsonschema",
+        "version": "1-0-0"
+      },
+      "type": "object",
+      "properties": {
+        "schema":  { "type": "string" },
+        "id": { "type": "string" },
+        "phone":  { "type": "string" }
+      },
+      "required": [
+        "schema",
+        "id",
+        "phone"
+      ],
+      "additionalProperties": false
+    };
 
-var productCreateSchema = require('./product-create-schema.json');
+var productCreateSchema = {
+      "$schema": "http://json-schema.org/schema#",
+      "self": {
+        "vendor": "com.nordstrom",
+        "name": "product/create",
+        "format": "jsonschema",
+        "version": "1-0-0"
+      },
+      "type": "object",
+      "properties": {
+        "schema":  { "type": "string", "format": "url" },
+        "id": { "type": "string" },
+        "brand":  { "type": "string" },
+        "name":  { "type": "string" },
+        "description": { "type": "string" },
+        "category": { "type": "string"}
+      },
+      "required": [
+        "schema",
+        "id",
+        "brand",
+        "name",
+        "description",
+        "category"
+      ],
+      "additionalProperties": false
+    };
 
 var constants = {
   // self

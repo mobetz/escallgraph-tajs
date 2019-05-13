@@ -28,8 +28,7 @@ functions:
       Fn::GetAtt: [ EventWriter, Arn ]
     handler: eventWriterApi.eventWriter
     environment:
-      STREAM_NAME:
-        Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamName}
+      STREAM_NAME: RETAIL_STREAM
     events:
       - http:
           path: event-writer

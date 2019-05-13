@@ -112,6 +112,7 @@ import static dk.brics.tajs.flowgraph.TAJSFunctionName.TAJS_NOTINQUEUE;
 import static dk.brics.tajs.flowgraph.TAJSFunctionName.TAJS_NOT_IMPLEMENTED;
 import static dk.brics.tajs.flowgraph.TAJSFunctionName.TAJS_PENDING;
 import static dk.brics.tajs.flowgraph.TAJSFunctionName.TAJS_REJECTEDWITH;
+import static dk.brics.tajs.flowgraph.TAJSFunctionName.TAJS_SERVERLESS;
 import static dk.brics.tajs.util.Collections.newList;
 import static dk.brics.tajs.util.Collections.newMap;
 import static dk.brics.tajs.util.Collections.newSet;
@@ -728,6 +729,29 @@ public class TAJSFunctionEvaluator {
                         return Value.makeStr(path);
                     }
                     return Value.makeNull();
+                });
+        register(implementations,
+                TAJS_SERVERLESS,
+                "String call_type, Value params",
+                "Handles a function API that invokes a serverless platform service",
+                (call, state, pv, c) -> {
+                    Value serverless_call_value = FunctionCalls.readParameter(call, state, 0);
+                    String serverless_type = serverless_call_value.getStr();
+                    Value params = FunctionCalls.readParameter(call, state, 1);
+                    switch (serverless_type) {
+                        case "dynamo_query":
+                            break;
+                        case "dynamo_scan":
+                            break;
+                        case "dynamo_update":
+                            break;
+                        case "dynamo_delete":
+                            break;
+                        case "kinesis_put":
+                            break;
+                        default:
+                            throw new AnalysisException("Unhandled serverless event type");
+                    }
                 });
         Set<TAJSFunctionName> missingRegistrations = newSet(Arrays.asList(TAJSFunctionName.values()));
         missingRegistrations.removeAll(implementations.keySet());

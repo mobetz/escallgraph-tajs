@@ -32,14 +32,11 @@ functions:
       Fn::GetAtt: [ ProductCatalogBuilder, Arn ]
     handler: catalog.processKinesisEvent
     environment:
-      TABLE_PRODUCT_CATEGORY_NAME:
-        Ref: ProductCategory
-      TABLE_PRODUCT_CATALOG_NAME:
-        Ref: ProductCatalog
+      TABLE_PRODUCT_CATEGORY_NAME: PRODUCT_CATEGORY_TABLE
+      TABLE_PRODUCT_CATALOG_NAME: PRODUCT_TABLE
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream' # replace this with the below, once supported by Serverless
-#            Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamArn}
+          arn: 'arn:aws:kinesis:us-east-1:XXX:stream/RETAIL_STREAM'
           enabled: true
           startingPosition: TRIM_HORIZON
 

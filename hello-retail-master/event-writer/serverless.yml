@@ -29,7 +29,7 @@ functions:
     handler: eventWriterApi.eventWriter
     environment:
       STREAM_NAME:
-        Fn::ImportValue: ${self:custom.retailStream.custom.exportRetailStreamName}
+        Fn::ImportValue: RETAIL_STREAM
     events:
       - http:
           path: event-writer

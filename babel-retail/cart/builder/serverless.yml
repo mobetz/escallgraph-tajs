@@ -19,7 +19,7 @@ functions:
         Ref: Cart
     events:
       - stream:
-          arn: 'arn:aws:kinesis:${self:provider.region}:${self:custom.private.accountId}:stream/devRetailStream'
+          arn: 'arn:aws:kinesis:us-east-1:XXX:stream/RETAIL_STREAM'
           enabled: true
           startingPosition: TRIM_HORIZON
 
