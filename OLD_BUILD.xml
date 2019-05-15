@@ -1,3 +1,4 @@
+<!--
 <?xml version="1.0" encoding="ISO-8859-1"?>
 
 <project name="TAJS" default="all" basedir=".">
@@ -40,18 +41,18 @@
     <target name="all" depends="clean,jar-all,tajs-functions,doc" />
 
     <target name="compile">
-        <!--
+        &lt;!&ndash;
         <property name="cp" refid="classpath"/>
         <echo message="Classpath is ${cp}"/>
-        -->
+        &ndash;&gt;
         <mkdir dir="antbuild"/>
         <javac srcdir="src" includes="**" destdir="antbuild" optimize="${optimize}"
                 debug="${debug}" includeantruntime="false" source="1.8">
             <classpath refid="classpath" />
             <compilerarg line="-encoding ISO-8859-1 -Xlint:deprecation" compiler="modern" />
-            <!--
+            &lt;!&ndash;
             <compilerarg line="-Xlint -Xlint:-serial -Xlint:-path" compiler="modern" />
-            -->
+            &ndash;&gt;
         </javac>
         <copy todir="antbuild">
             <fileset dir="resources"/>
@@ -91,7 +92,7 @@
     <target name="doc" depends="jar">
         <mkdir dir="doc" />
         <javadoc overview="src/overview.html" Package="true" sourcepath="src" destdir="doc" nodeprecated="true" author="true" notree="true" nohelp="true" windowtitle="TAJS" additionalparam="-Xdoclint:none">
-                <!-- for Java 8: additionalparam="-Xdoclint:none" -->
+                &lt;!&ndash; for Java 8: additionalparam="-Xdoclint:none" &ndash;&gt;
             <doctitle>
                 <![CDATA[Type Analyzer for JavaScript (TAJS) API Specification]]>
             </doctitle>
@@ -126,11 +127,11 @@
             <fileset dir="src" excludes="**/*.class" />
         </copy>
         <zip zipfile="dist/${dir}.zip" basedir="." includes="${dir}/**" />
-        <!--
+        &lt;!&ndash;
         <tar tarfile="${dir}.tar" basedir="." includes="${dir}/**" />
         <gzip zipfile="${dir}.tar.gz" src="${dir}.tar" />
         <delete file="${dir}.tar" />
-        -->
+        &ndash;&gt;
         <delete dir="${dir}" />
     </target>
 
@@ -147,7 +148,7 @@
         <junit fork="true" printsummary="yes" showoutput="yes" haltonfailure="no" haltonerror="no" failureproperty="test.failed" maxmemory="2048m">
             <classpath refid="classpath.test" />
             <test name="dk.brics.tajs.test.RunFast"/>
-        </junit>    
+        </junit>
         <fail message="tests failed" if="test.failed"/>
     </target>
 
@@ -324,3 +325,4 @@
     </target>
 
 </project>
+-->

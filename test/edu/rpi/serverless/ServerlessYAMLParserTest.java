@@ -1,31 +1,27 @@
-package dk.brics.tajs.test.serverless;
+package edu.rpi.serverless;
 
 import com.google.common.collect.Lists;
 import dk.brics.tajs.analysis.Analysis;
 import dk.brics.tajs.flowgraph.FlowGraph;
 import dk.brics.tajs.monitoring.AnalysisPhase;
 import dk.brics.tajs.monitoring.CompositeMonitoring;
-import dk.brics.tajs.monitoring.DefaultAnalysisMonitoring;
 import dk.brics.tajs.monitoring.IAnalysisMonitoring;
 import dk.brics.tajs.monitoring.Monitoring;
 import dk.brics.tajs.monitoring.ProgramExitReachabilityChecker;
-import dk.brics.tajs.monitoring.ReachabilityMonitor;
 import dk.brics.tajs.monitoring.TAJSAssertionReachabilityCheckerMonitor;
-import dk.brics.tajs.monitoring.soundness.SoundnessTesterMonitor;
 import dk.brics.tajs.options.OptionValues;
 import dk.brics.tajs.options.Options;
-import dk.brics.tajs.serverless.ServerlessYAMLParser;
 import dk.brics.tajs.solver.Message;
-import dk.brics.tajs.util.Collectors;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.Test;
 import org.kohsuke.args4j.CmdLineException;
+import edu.rpi.serverless.ServerlessYAMLParser;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Properties;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static dk.brics.tajs.util.Collectors.toSet;
 import static org.junit.Assert.*;
@@ -35,7 +31,7 @@ public class ServerlessYAMLParserTest {
     @Test
     public void parseBabelRetailCartServerless() {
 
-        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse("babel-retail/cart/api/serverless.yml");
+        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(Paths.get("babel-retail/cart/api/serverless.yml"));
 
         assertEquals("helloRetail-cart-api", res.service);
         assertTrue(res.functions.containsKey("products"));
@@ -52,7 +48,7 @@ public class ServerlessYAMLParserTest {
         ServerlessYAMLParser.HandlerPath res1 = ServerlessYAMLParser.convert_handler_to_filepath("a.b");
         assertEquals("a.js::b", res1.toString());
         ServerlessYAMLParser.HandlerPath res2 = ServerlessYAMLParser.convert_handler_to_filepath("a.b.c");
-        assertEquals("a\\b.js::c", res2.toString());
+        assertEquals("a" + File.separator + "b.js::c", res2.toString());
     }
 
 
@@ -86,7 +82,7 @@ public class ServerlessYAMLParserTest {
     @Test
     public void sandbox() {
         Path root = Paths.get("babel-retail/product-catalog/builder");
-        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(root.resolve("serverless.yml").toString());
+        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(root.resolve("serverless.yml"));
         res.functions.values().forEach((f) -> {
             setOptions(root.resolve(ServerlessYAMLParser.convert_handler_to_filepath(f.handler).file));
 

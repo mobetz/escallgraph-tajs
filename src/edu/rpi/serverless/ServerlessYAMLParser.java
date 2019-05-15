@@ -1,4 +1,4 @@
-package dk.brics.tajs.serverless;
+package edu.rpi.serverless;
 
 
 import dk.brics.tajs.analysis.nativeobjects.NodeJSRequire;
@@ -6,7 +6,6 @@ import dk.brics.tajs.flowgraph.FlowGraph;
 import dk.brics.tajs.flowgraph.HostEnvSources;
 import dk.brics.tajs.flowgraph.SourceLocation;
 import dk.brics.tajs.js2flowgraph.FlowGraphBuilder;
-import dk.brics.tajs.options.Options;
 import dk.brics.tajs.util.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
@@ -63,14 +62,14 @@ public class ServerlessYAMLParser {
 
 
 
-    public static ServerlessFile parse(String path) {
+    public static ServerlessFile parse(Path path) {
         Representer opts = new Representer();
         opts.getPropertyUtils().setSkipMissingProperties(true);
         Yaml parser = new Yaml(opts);
 
         ServerlessFile doc = null;
 
-         File serverless_file = new File(path);
+         File serverless_file = path.toFile();
          try {
              InputStream serverless_stream = new DataInputStream(new FileInputStream(serverless_file));
              doc = parser.loadAs(serverless_stream, ServerlessFile.class);
@@ -125,8 +124,8 @@ public class ServerlessYAMLParser {
 //             log.info("Loading " + file_url);
 
             builder.transformStandAloneCode(Loader.getString(file_url, Charset.forName("UTF-8")), new SourceLocation.StaticLocationMaker(file_url));
-            //TODO: does this line below work like I think it does?
-            builder.transformStandAloneCode("module.exports." + entrypoint.method + "()", new SourceLocation.StaticLocationMaker(file_url));
+//            //TODO: does this line below work like I think it does?
+//            builder.transformStandAloneCode("module.exports." + entrypoint.method + "()", new SourceLocation.StaticLocationMaker(file_url));
 
             FlowGraph res = builder.close();
             return res;

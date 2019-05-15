@@ -6,14 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="TAJS" />
+        <module name="TAJS-serverless" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="TAJS" target="1.8" />
+      <module name="TAJS-serverless" target="1.8" />
     </bytecodeTargetLevel>
-  </component>
-  <component name="HaskellBuildOptions">
-    <stackPath>C:\Users\mwobey\AppData\Roaming\local\bin\stack.exe</stackPath>
   </component>
 </project>
