@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: ${self:custom.productPhotos.dataName}
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   productPhotos: ${file(../productPhotos.yml)}
@@ -35,7 +35,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: dev-${self:service}-PhotoRegistrations-${self:custom.productPhotos.productPhotosVersion}
+        TableName: dev-${self:service}-PhotoRegistrations-1
         GlobalSecondaryIndexes:
           - IndexName: Assignments
             KeySchema:
@@ -63,7 +63,7 @@ resources:
         ProvisionedThroughput:
           ReadCapacityUnits: 1
           WriteCapacityUnits: 1
-        TableName: dev-${self:service}-PhotoAssignments-${self:custom.productPhotos.productPhotosVersion}
+        TableName: dev-${self:service}-PhotoAssignments-1
   Outputs:
     # Registrations
     PhotoRegistrationsTableName:
@@ -77,7 +77,7 @@ resources:
       Value:
         'Fn::Join':
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: PhotoRegistrations
       Export:
         Name: ${self:custom.productPhotos.exportPhotoRegistrationsTableArn}
@@ -86,7 +86,7 @@ resources:
       Value:
         'Fn::Join':
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: PhotoRegistrations
             - index
             - Assignments
@@ -104,7 +104,7 @@ resources:
       Value:
         'Fn::Join':
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: PhotoAssignments
       Export:
         Name: ${self:custom.productPhotos.exportPhotoAssignmentsTableArn}

@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: helloRetail-product-catalog-builder
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
@@ -110,7 +110,7 @@ resources:
               Action: sts:AssumeRole
               Principal:
                 AWS: # role ARNs that are allowed to write to the Product Catalog
-                  - 'arn:aws:iam::${self:custom.private.accountId}:role/${self:custom.private.teamRole}'
+                  - 'arn:aws:iam::XXX:role/${self:custom.private.teamRole}'
             - Effect: Allow
               Action: sts:AssumeRole
               Principal:
@@ -157,7 +157,7 @@ resources:
                    Resource:
                     Fn::Join:
                       - '/'
-                      - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+                      - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
                         - Ref: ProductCategory
                 -  Effect: Allow
                    Action:
@@ -165,7 +165,7 @@ resources:
                    Resource:
                     Fn::Join:
                       - '/'
-                      - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+                      - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
                         - Ref: ProductCatalog
 
   Outputs:
@@ -180,7 +180,7 @@ resources:
       Value:
         Fn::Join:
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: ProductCategory
       Export:
         Name: PRODUCT_CATEGORY_TABLE
@@ -195,7 +195,7 @@ resources:
       Value:
         Fn::Join:
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: ProductCatalog
       Export:
         Name: ${self:custom.productCatalogBuilder.custom.exportProductCatalogTableArn}
@@ -204,7 +204,7 @@ resources:
       Value:
         Fn::Join:
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: ProductCatalog
             - index
             - Category

@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: helloRetail-event-writer-api
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../private.yml)}
   helloRetail: ${file(../helloRetail.yml)}
   retailStream: ${file(../retail-stream/serverless.yml)}

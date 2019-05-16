@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: ${self:custom.productPhotos.failName}
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   productPhotos: ${file(../productPhotos.yml)}
@@ -37,7 +37,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: devProductPhotosFail${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosFail1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:

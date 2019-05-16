@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: ${self:custom.productPhotos.reportName}
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
@@ -45,7 +45,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: devProductPhotosReport${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosReport1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
