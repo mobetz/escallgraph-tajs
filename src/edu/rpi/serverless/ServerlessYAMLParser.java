@@ -10,11 +10,7 @@ import dk.brics.tajs.util.Loader;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.file.Path;
@@ -93,25 +89,25 @@ public class ServerlessYAMLParser {
         }
     }
 
-    public static HandlerPath convert_handler_to_filepath(String handler) {
+    public static HandlerPath convert_handler_to_filepath(String handler, Path context) {
         List<String> handler_components = new ArrayList<String>(Arrays.asList(handler.split("\\.")));
         String method = handler_components.remove(handler_components.size()-1);
         String filename = handler_components.remove(handler_components.size()-1) + ".js";
         handler_components.add(filename);
         String folder_path = String.join("/", handler_components);
 
-        return new HandlerPath(Paths.get(folder_path), method);
+        Path filepath = context.getParent().resolve(Paths.get(folder_path));
+        return new HandlerPath(filepath, method);
     }
 
     public static FlowGraph generate_entrypoint_flowgraph(ServerlessFunctionDefinition serverless_func, Path serverless_filepath) {
 
-        HandlerPath entrypoint = convert_handler_to_filepath(serverless_func.handler);
+        HandlerPath entrypoint = convert_handler_to_filepath(serverless_func.handler, serverless_filepath);
 
-        Path entrypoint_loc = serverless_filepath.getParent().resolve(entrypoint.file);
         try {
-            URL file_url = entrypoint_loc.toUri().toURL();
+            URL file_url = entrypoint.file.toUri().toURL();
 
-            FlowGraphBuilder builder = FlowGraphBuilder.makeForMain(new SourceLocation.StaticLocationMaker(entrypoint_loc.toUri().toURL()));
+            FlowGraphBuilder builder = FlowGraphBuilder.makeForMain(new SourceLocation.StaticLocationMaker(file_url));
             builder.addLoadersForHostFunctionSources(HostEnvSources.getAccordingToOptions());
 
             NodeJSRequire.reset();
@@ -126,10 +122,9 @@ public class ServerlessYAMLParser {
 
             FlowGraph res = builder.close();
             return res;
-        } catch (Exception e) {
-
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-
         return null;
     }
 

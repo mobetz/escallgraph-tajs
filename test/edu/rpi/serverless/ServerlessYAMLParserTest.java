@@ -45,9 +45,9 @@ public class ServerlessYAMLParserTest {
 
     @Test
     public void testHandlerPathGeneration() {
-        ServerlessYAMLParser.HandlerPath res1 = ServerlessYAMLParser.convert_handler_to_filepath("a.b");
+        ServerlessYAMLParser.HandlerPath res1 = ServerlessYAMLParser.convert_handler_to_filepath("a.b", Paths.get(""));
         assertEquals("a.js::b", res1.toString());
-        ServerlessYAMLParser.HandlerPath res2 = ServerlessYAMLParser.convert_handler_to_filepath("a.b.c");
+        ServerlessYAMLParser.HandlerPath res2 = ServerlessYAMLParser.convert_handler_to_filepath("a.b.c", Paths.get(""));
         assertEquals("a" + File.separator + "b.js::c", res2.toString());
     }
 
@@ -81,44 +81,49 @@ public class ServerlessYAMLParserTest {
 
     @Test
     public void sandbox() {
-        Path root = Paths.get("babel-retail/product-catalog/builder");
-        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(root.resolve("serverless.yml"));
-        res.functions.values().forEach((f) -> {
-            setOptions(root.resolve(ServerlessYAMLParser.convert_handler_to_filepath(f.handler).file));
+        Path root = Paths.get("babel-retail");
 
-            IAnalysisMonitoring reachability_checker =  new TAJSAssertionReachabilityCheckerMonitor(() -> true);
-            IAnalysisMonitoring exit_checker = new ProgramExitReachabilityChecker(
-                    false,
-                    true,
-                    true,
-                    false,
-                    true,
-                    () -> true);
+        ServerlessLocator.findInDirectory(root)
+                .forEach((serverless_path) -> {
+                    ServerlessYAMLParser.ServerlessFile yaml_contents = ServerlessYAMLParser.parse(serverless_path);
+                    yaml_contents.functions.values().forEach((f) -> {
+                        setOptions(ServerlessYAMLParser.convert_handler_to_filepath(f.handler, serverless_path).file);
+
+                        IAnalysisMonitoring reachability_checker =  new TAJSAssertionReachabilityCheckerMonitor(() -> true);
+                        IAnalysisMonitoring exit_checker = new ProgramExitReachabilityChecker(
+                                false,
+                                true,
+                                true,
+                                false,
+                                true,
+                                () -> true);
 
 
 
-            IAnalysisMonitoring error_collector = CompositeMonitoring.buildFromList(Lists.newArrayList(Monitoring.make(), reachability_checker, exit_checker));
-            Analysis analysis = new Analysis(error_collector, null);
+                        IAnalysisMonitoring error_collector = CompositeMonitoring.buildFromList(Lists.newArrayList(Monitoring.make(), reachability_checker, exit_checker));
+                        Analysis analysis = new Analysis(error_collector, null);
 
-            FlowGraph fg = ServerlessYAMLParser.generate_entrypoint_flowgraph(f, res.file_location);
-            analysis.getSolver().init(fg, null);
+                        FlowGraph fg = ServerlessYAMLParser.generate_entrypoint_flowgraph(f, yaml_contents.file_location);
+                        analysis.getSolver().init(fg, null);
 
-            error_collector.visitPhasePre(AnalysisPhase.ANALYSIS);
-            analysis.getSolver().solve();
-            error_collector.visitPhasePost(AnalysisPhase.ANALYSIS);
+                        error_collector.visitPhasePre(AnalysisPhase.ANALYSIS);
+                        analysis.getSolver().solve();
+                        error_collector.visitPhasePost(AnalysisPhase.ANALYSIS);
 
-            error_collector.visitPhasePre(AnalysisPhase.SCAN);
-            analysis.getSolver().scan();
-            error_collector.visitPhasePost(AnalysisPhase.SCAN);
+                        error_collector.visitPhasePre(AnalysisPhase.SCAN);
+                        analysis.getSolver().scan();
+                        error_collector.visitPhasePost(AnalysisPhase.SCAN);
 
-            Set<Message> x = error_collector.getMessages()
-                    .stream()
-                    .filter((m) -> m.getStatus() != Message.Status.NONE)
-                    .filter((m) -> !m.getMessage().contains("Dead assignment"))
-                    .filter((m) -> !m.getMessage().contains("is never used"))
-                    .collect(toSet());
+                        Set<Message> x = error_collector.getMessages()
+                                .stream()
+                                .filter((m) -> m.getStatus() != Message.Status.NONE)
+                                .filter((m) -> !m.getMessage().contains("Dead assignment"))
+                                .filter((m) -> !m.getMessage().contains("is never used"))
+                                .collect(toSet());
 
-            System.out.println("finished");
+                        System.out.println("finished analyzing " + serverless_path);
+                });
+
         });//foreach serverless function
 
     }
