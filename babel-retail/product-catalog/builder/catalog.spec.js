@@ -6,12 +6,12 @@
 describe('Product Catalog Processor Unit Tests', function () {
   var consoleLog;
   before(function () {
-    consoleLog = console.log;
+    consoleLog = // console.log;
 
-    console.log = function () {};
+    // console.log = function () {};
   });
   after(function () {
-    console.log = consoleLog;
+    // console.log = consoleLog;
   });
   it('should have some tests', function () {});
 });

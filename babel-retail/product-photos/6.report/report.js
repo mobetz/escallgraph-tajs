@@ -17,10 +17,10 @@ var constants = {
   METHOD_SUCCEED_ASSIGNMENT: 'succeedAssignment',
   METHOD_DELETE_ASSIGNMENT: 'deleteAssignment',
   // external
-  RETAIL_STREAM_NAME: process.env.RETAIL_STREAM_NAME,
+  RETAIL_STREAM_NAME: 'RETAIL_STREAM',
   RETAIL_STREAM_WRITER_ARN: process.env.RETAIL_STREAM_WRITER_ARN,
-  TABLE_PHOTO_REGISTRATIONS_NAME: process.env.TABLE_PHOTO_REGISTRATIONS_NAME,
-  TABLE_PHOTO_ASSIGNMENTS_NAME: process.env.TABLE_PHOTO_ASSIGNMENTS_NAME
+  TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE',
+  TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE'
   /**
    * AJV
    */
@@ -119,7 +119,7 @@ var impl = {
 
       }
     };
-    dynamo["delete"](params, function (err) {
+    dynamo.delete(params, function (err) {
       if (err) {
         if (err.code && err.code === 'ConditionalCheckFailedException') {
           // consider the deletion of the record to indicate preemption by another component
@@ -160,7 +160,7 @@ module.exports = {
    * }
    */
   handler: function handler(event, context, callback) {
-    console.log(JSON.stringify(event));
+    // console.log(JSON.stringify(event));
     impl.writeToStream(event, function (wErr) {
       if (wErr) {
         callback("".concat(constants.MODULE, " ").concat(constants.METHOD_WRITE_TO_STREAM, " - ").concat(wErr.stack));

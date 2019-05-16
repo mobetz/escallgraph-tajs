@@ -40,9 +40,9 @@ var impl = {
       message += " (".concat(currentStack + 1, " of ").concat(stackList.length, ")");
     }
 
-    console.log(message);
+    // console.log(message);
     return cloudFormation.deleteStack(params).promise().then(function () {
-      console.log("".concat(params.StackName, " deleted."));
+      // console.log("".concat(params.StackName, " deleted."));
       currentStack += 1; // eslint-disable-line no-param-reassign
 
       if (currentStack < stackList.length) {
@@ -79,7 +79,7 @@ var impl = {
         return Promise.resolve("No stacks found matching ".concat(stackNameRegEx, " Exiting."));
       }
 
-      console.log("Found ".concat(stackNames.length, " stacks."));
+      // console.log("Found ".concat(stackNames.length, " stacks."));
       return inquirer.prompt([{
         type: 'list',
         name: 'stackSelection',
@@ -98,8 +98,8 @@ var impl = {
         }
       });
     }).then(function (message) {
-      console.log(message);
-    })["catch"](function (error) {
+      // console.log(message);
+    }).catch(function (error) {
       console.error("ERROR: ".concat(error));
       process.exit(1);
     });

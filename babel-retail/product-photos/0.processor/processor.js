@@ -1,7 +1,7 @@
 'use strict';
 
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
-
+var lambda = new aws.Lambda();
 
 var KH = require('kinesis-handler');
 /**
@@ -116,7 +116,7 @@ var constants = {
   ,
   // resources
   STEP_FUNCTION: process.env.STEP_FUNCTION,
-  TABLE_PHOTO_REGISTRATIONS_NAME: process.env.TABLE_PHOTO_REGISTRATIONS_NAME
+  TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE'
   /**
    * Transform record (which will be of the form in ingress schema) to the form of egress schema
    */
@@ -142,7 +142,6 @@ var kh = new KH.KinesisHandler(eventSchema, constants.MODULE, transformer);
  */
 
 var dynamo = new aws.DynamoDB.DocumentClient();
-var stepfunctions = new aws.StepFunctions();
 var impl = {
   /**
    * Parse the origin
@@ -281,20 +280,12 @@ var impl = {
     var sfEvent = event;
     sfEvent.merchantName = impl.eventSource(event.origin).friendlyName;
     var params = {
-      stateMachineArn: constants.STEP_FUNCTION,
-      name: sfEvent.data.id,
-      input: JSON.stringify(sfEvent)
+      FunctionName: 'assign-product-photos-dev-assign',
+      InvocationType: "RequestResponse",
+      Payload:  JSON.stringify(sfEvent)
     };
-    stepfunctions.startExecution(params, function (err) {
-      if (err) {
-        if (err.code && err.code === 'ExecutionAlreadyExists') {
-          complete();
-        } else {
-          complete(err);
-        }
-      } else {
+    lambda.invoke(params, function () {
         complete();
-      }
     });
   }
 };
@@ -303,5 +294,5 @@ kh.registerSchemaMethodPair(productCreateSchema, impl.startExecution);
 module.exports = {
   processKinesisEvent: kh.processKinesisEvent.bind(kh)
 };
-console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
-console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+// console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
+// console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));

@@ -111,7 +111,7 @@ var impl = {
       if (priorErr === undefined) {
         // first update result
         if (err) {
-          // console.log("err = ", err);
+          // // console.log("err = ", err);
           priorErr = err;
         } else {
           priorErr = false;
@@ -152,7 +152,7 @@ var impl = {
       ReturnConsumedCapacity: 'NONE',
       ReturnItemCollectionMetrics: 'NONE'
     };
-    // console.log(dbParamsCart);
+    // // console.log(dbParamsCart);
     dynamo.update(dbParamsCart, updateCallback);
   },
 
@@ -176,7 +176,7 @@ var impl = {
       if (priorErr === undefined) {
         // first update result
         if (err) {
-          // console.log("err = ", err);
+          // // console.log("err = ", err);
           priorErr = err;
         } else {
           priorErr = false;
@@ -201,7 +201,7 @@ var impl = {
 
       }
     };
-    // console.log(dbParamsCart);
+    // // console.log(dbParamsCart);
     dynamo["delete"](dbParamsCart, updateCallback);
   }
 };
@@ -211,7 +211,7 @@ kh.registerSchemaMethodPair(cartRemoveSchema, impl.cartRemove);
 module.exports = {
   processKinesisEvent: kh.processKinesisEvent.bind(kh)
 };
-// console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
-// console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+// // console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
+// // console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
 
 module.exports.processKinesisEvent({origin: TAJS_make('AnyStr'), data: { id: TAJS_make('AnyStr')}}, function(){});

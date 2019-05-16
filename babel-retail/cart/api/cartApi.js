@@ -104,15 +104,15 @@ var impl = {
     );
   },
   dynamoError: function dynamoError(err) {
-    //console.log(err);
+    //// console.log(err);
     return impl.response(500, "".concat(constants.METHOD_PRODUCTS, " - ").concat(constants.INTEGRATION_ERROR));
   },
   securityRisk: function securityRisk(schemaId, ajvErrors, items) {
-    // console.log(constants.HASHES);
-    // console.log(constants.SECURITY_RISK);
-    // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
-    // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
-    // console.log(constants.HASHES);
+    // // console.log(constants.HASHES);
+    // // console.log(constants.SECURITY_RISK);
+    // // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
+    // // console.log("".concat(constants.METHOD_PRODUCTS, " ").concat(constants.DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
+    // // console.log(constants.HASHES);
     return impl.response(500, "".concat(constants.METHOD_PRODUCTS, " - ").concat(constants.INTEGRATION_ERROR));
   },
   success: function success(items) {

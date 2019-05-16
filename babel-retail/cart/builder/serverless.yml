@@ -62,7 +62,7 @@ resources:
               Action: sts:AssumeRole
               Principal:
                 AWS: # role ARNs that are allowed to write to the Cart
-                  - 'arn:aws:iam::${self:custom.private.accountId}:role/${self:custom.private.teamRole}'
+                  - 'arn:aws:iam::XXX:role/${self:custom.private.teamRole}'
             - Effect: Allow
               Action: sts:AssumeRole
               Principal:
@@ -110,7 +110,7 @@ resources:
                    Resource:
                     Fn::Join:
                       - '/'
-                      - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+                      - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
                         - Ref: Cart
 
   Outputs:
@@ -125,7 +125,7 @@ resources:
       Value:
         Fn::Join:
           - '/'
-          - - 'arn:aws:dynamodb:${self:provider.region}:${self:custom.private.accountId}:table'
+          - - 'arn:aws:dynamodb:${self:provider.region}:XXX:table'
             - Ref: Cart
       Export:
         Name: ${self:custom.cartBuilder.custom.exportCartTableArn}

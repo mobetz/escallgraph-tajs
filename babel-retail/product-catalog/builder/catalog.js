@@ -250,8 +250,8 @@ kh.registerSchemaMethodPair(productImageSchema, impl.putImage);
 module.exports = {
   processKinesisEvent: kh.processKinesisEvent.bind(kh)
 };
-// console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
-// console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+// // console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
+// // console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
 
 
 module.exports.processKinesisEvent({origin: TAJS_make('AnyStr'), data: {

@@ -3,7 +3,7 @@ frameworkVersion: '>=1.0.0 <2.0.0'
 service: helloRetail-stream
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../private.yml)}
   helloRetail: ${file(../helloRetail.yml)}
   # Retail Stream Versions & Exports
@@ -46,7 +46,7 @@ resources:
             - Effect: Allow
               Principal:
                 AWS: # role ARNs that are allowed to write to the Retail stream
-                  - arn:aws:iam::${self:custom.private.accountId}:role/${self:custom.private.teamRole}
+                  - arn:aws:iam::XXX:role/${self:custom.private.teamRole}
               Action: sts:AssumeRole
         ManagedPolicyArns:
           - DEFAULT_TEAM_POLICY
@@ -74,7 +74,7 @@ resources:
             - Effect: Allow
               Principal:
                 AWS: # role ARNs that are allowed to read from the Retail stream
-                  - 'arn:aws:iam::${self:custom.private.accountId}:role/${self:custom.private.teamRole}'
+                  - 'arn:aws:iam::XXX:role/${self:custom.private.teamRole}'
               Action: sts:AssumeRole
         ManagedPolicyArns:
           - DEFAULT_TEAM_POLICY

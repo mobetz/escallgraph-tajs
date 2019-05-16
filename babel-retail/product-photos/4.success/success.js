@@ -28,8 +28,18 @@
  */
 
 exports.handler = function (event, context, callback) {
-  console.log(JSON.stringify(event));
+  // console.log(JSON.stringify(event));
   var result = event;
   result.assignmentComplete = 'true';
+
+
+  var params = {
+    FunctionName: 'product-photos-report-dev-',
+    InvocationType: "RequestResponse",
+    Payload:  JSON.stringify(taskEvent)
+  };
+  lambda.invoke(params, function(r) {
+    callback(r)
+  });
   callback(null, result);
 };

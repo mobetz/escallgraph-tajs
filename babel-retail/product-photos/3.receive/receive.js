@@ -27,53 +27,69 @@ var AJV = require('ajv');
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
 
 
-var BbPromise = require('bluebird');
-
-var got = require('got');
-
-var Twilio = require('twilio');
-
-var url = require('url');
 /**
  * AJV
  */
 // TODO Get these from a better place later
 
 
-var twilioRequestSchema = require('./twilio-request-schema.json');
 
-var photoAssignmentSchema = require('./photo-assignment-schema.json'); // TODO generalize this?  it is used by but not specific to this module
+var photoAssignmentSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product-photos/assignment-record",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "path":                   { "type": "string", "pattern": "^/product-photos$" },
+    "httpMethod":             { "type": "string", "pattern": "^POST$" },
+    "headers":                {
+      "type": "object",
+      "properties": {
+        "X-Twilio-Signature": { "type": "string", "pattern": "^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)$" }
+      },
+      "additionalProperties": true
+    },
+    "body":                   {
+      "type": "object",
+      "properties": {
+        "From":               { "type": "string", "pattern": "^\\+?[1-9]\\d{1,14}$" },
+        "NumMedia":           { "type": "string", "pattern": "^\\d+$" },
+        "MediaUrl0":          { "type": "string", "format": "url" },
+        "Body":               { "type": "string" }
+      },
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "path",
+    "httpMethod",
+    "headers"
+  ],
+  "additionalProperties": true
+}; // TODO generalize this?  it is used by but not specific to this module
 
 
 var makeSchemaId = function makeSchemaId(schema) {
   return "".concat(schema.self.vendor, "/").concat(schema.self.name, "/").concat(schema.self.version);
 };
 
-var twilioRequestSchemaId = makeSchemaId(twilioRequestSchema);
 var photoAssignmentSchemaId = makeSchemaId(photoAssignmentSchema);
 var ajv = new AJV();
-ajv.addSchema(twilioRequestSchema, twilioRequestSchemaId);
 ajv.addSchema(photoAssignmentSchema, photoAssignmentSchemaId);
 /**
  * AWS
  */
 
-aws.config.setPromisesDependency(BbPromise);
+aws.config.setPromisesDependency(Promise);
 var dynamo = new aws.DynamoDB.DocumentClient();
 var kms = new aws.KMS();
 var s3 = new aws.S3();
 var stepfunctions = new aws.StepFunctions();
-/**
- * Twilio
- */
 
-var twilio = {
-  authToken: undefined
-  /**
-   * Constants
-   */
-
-};
 var constants = {
   // Errors
   ERROR_CLIENT: 'ClientError',
@@ -93,8 +109,8 @@ var constants = {
   METHOD_SEND_STEP_SUCCESS: 'impl.sendStepSuccess',
   // External
   ENDPOINT: process.env.ENDPOINT,
-  IMAGE_BUCKET: process.env.IMAGE_BUCKET,
-  TABLE_PHOTO_ASSIGNMENTS_NAME: process.env.TABLE_PHOTO_ASSIGNMENTS_NAME,
+  IMAGE_BUCKET: 'IMAGE_BUCKET',
+  TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE',
   TWILIO_AUTH_TOKEN_ENCRYPTED: process.env.TWILIO_AUTH_TOKEN_ENCRYPTED
   /**
    * Errors
@@ -192,20 +208,20 @@ var util = {
     };
   },
   securityRisk: function securityRisk(schemaId, ajvErrors, items) {
-    console.log(constants.HASHES);
-    console.log(constants.ERROR_SECURITY_RISK);
-    console.log("".concat(constants.METHOD_TODO, " ").concat(constants.ERROR_DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
-    console.log("".concat(constants.METHOD_TODO, " ").concat(constants.ERROR_DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
-    console.log(constants.HASHES);
+    // console.log(constants.HASHES);
+    // console.log(constants.ERROR_SECURITY_RISK);
+    // console.log("".concat(constants.METHOD_TODO, " ").concat(constants.ERROR_DATA_CORRUPTION, " could not validate data to '").concat(schemaId, "' schema. Errors: ").concat(ajvErrors));
+    // console.log("".concat(constants.METHOD_TODO, " ").concat(constants.ERROR_DATA_CORRUPTION, " bad data: ").concat(JSON.stringify(items)));
+    // console.log(constants.HASHES);
     return util.response(500, constants.ERROR_SERVER);
   },
   decrypt: function decrypt(field, value) {
     return kms.decrypt({
       CiphertextBlob: new Buffer(value, 'base64')
     }).promise().then(function (data) {
-      return BbPromise.resolve(data.Plaintext.toString('ascii'));
+      return Promise.resolve(data.Plaintext.toString('ascii'));
     }, function (err) {
-      return BbPromise.reject(new ServerError("Error decrypting '".concat(field, "': ").concat(err)));
+      return Promise.reject(new ServerError("Error decrypting '".concat(field, "': ").concat(err)));
     } // eslint-disable-line comma-dangle
     );
   }
@@ -215,82 +231,8 @@ var util = {
 
 };
 var impl = {
-  /**
-   * Validate that the given event validates against the request schema
-   * @param event The event representing the HTTPS request from Twilio (SMS sent notification)
-   */
-  validateApiGatewayRequest: function validateApiGatewayRequest(event) {
-    if (!ajv.validate(twilioRequestSchemaId, event)) {
-      // bad request
-      return BbPromise.reject(new ClientError("could not validate request to '".concat(twilioRequestSchemaId, "' schema. Errors: '").concat(ajv.errorsText(), "' found in event: '").concat(JSON.stringify(event), "'")));
-    } else {
-      return BbPromise.resolve(event);
-    }
-  },
-
-  /**
-   * Ensure that we have decrypted the Twilio credentials and initialized the SDK with them
-   * @param event The event representing the HTTPS request from Twilio (SMS sent notification)
-   */
-  ensureAuthTokenDecrypted: function ensureAuthTokenDecrypted(event) {
-    if (!twilio.authToken) {
-      return util.decrypt('authToken', constants.TWILIO_AUTH_TOKEN_ENCRYPTED).then(function (authToken) {
-        twilio.authToken = authToken;
-        return BbPromise.resolve(event);
-      });
-    } else {
-      return BbPromise.resolve(event);
-    }
-  },
-
-  /**
-   * Validate the request as having a proper signature from Twilio.  This provides authentication that the request came from Twillio.
-   * @param event The event representing the HTTPS request from Twilio (SMS sent notification)
-   */
-  validateTwilioRequest: function validateTwilioRequest(event) {
-    var body = url.parse("?".concat(event.body), true).query;
-
-    if (!Twilio.validateRequest(twilio.authToken, event.headers['X-Twilio-Signature'], constants.ENDPOINT, body)) {
-      return BbPromise.reject(new AuthError('Twilio message signature validation failure!'));
-    } else if (body.NumMedia < 1) {
-      return BbPromise.reject(new UserError('Oops!  We were expecting a product image.  Please send one!  :D'));
-    } else if (body.NumMedia < 1) {
-      return BbPromise.reject(new UserError('Oops!  We can only handle one image.  Sorry... can you please try again?  :D'));
-    } else if (!body.MediaContentType0 || !body.MediaContentType0.startsWith('image/')) {
-      return BbPromise.reject(new UserError('Oops!  We can only accept standard images.  We weren\'t very creative...'));
-    } else if (!body.From) {
-      return BbPromise.reject(new ServerError('Request from Twilio did not contain the phone number the image came from.'));
-    } else {
-      return BbPromise.resolve({
-        event: event,
-        body: body
-      });
-    }
-  },
   getResources: function getResources(results) {
-    return BbPromise.all([impl.getImageFromTwilio(results), impl.getAssignment(results)]);
-  },
-
-  /**
-   * Twilio sends a URI from which a user's image can downloaded.  Download it.
-   * @param results The event representing the HTTPS request from Twilio (SMS sent notification)
-   */
-  getImageFromTwilio: function getImageFromTwilio(results) {
-    var uri = url.parse(results.body.MediaUrl0);
-
-    if (aws.config.httpOptions.agent) {
-      uri.agent = aws.config.httpOptions.agent;
-    }
-
-    return got.get(uri, {
-      encoding: null
-    }).then(function (res) {
-      return BbPromise.resolve({
-        contentType: results.body.MediaContentType0,
-        data: res.body
-      });
-    } // eslint-disable-line comma-dangle
-    );
+    return Promise.all([results, impl.getAssignment(results)]);
   },
 
   /**
@@ -308,16 +250,16 @@ var impl = {
       ConsistentRead: false,
       ReturnConsumedCapacity: 'NONE'
     };
-    return dynamo.get(params).promise().then(function (data) {
-      if (!data.Item) {
-        return BbPromise.reject(new UserError('Oops!  We couldn\'t find your assignment.  If you have registered and not completed your assignments, we will send one shortly.'));
-      } else {
-        var item = data.Item;
-        item.taskEvent = JSON.parse(item.taskEvent);
-        return BbPromise.resolve(item);
-      }
-    }, function (ex) {
-      return BbPromise.reject(new ServerError("Failed to retrieve assignment: ".concat(ex)));
+    return dynamo.get(params).promise()
+        .then(function (data) {
+          if (!data.Item) {
+            return Promise.reject(new UserError('Oops!  We couldn\'t find your assignment.  If you have registered and not completed your assignments, we will send one shortly.'));
+          } else {
+            var item = data.Item;
+            return Promise.resolve(item);
+          }
+        }, function (ex) {
+      return Promise.reject(new ServerError("Failed to retrieve assignment: ".concat(ex)));
     } // eslint-disable-line comma-dangle
     );
   },
@@ -332,24 +274,24 @@ var impl = {
   storeImage: function storeImage(results) {
     var image = results[0];
     var assignment = results[1];
-    var bucketKey = "i/p/".concat(assignment.taskEvent.data.id);
+    var bucketKey = "i/p/".concat("ASSIGNMENT_NUMBER");
     var params = {
       Bucket: constants.IMAGE_BUCKET,
       Key: bucketKey,
       Body: image.data,
       ContentType: image.contentType,
       Metadata: {
-        from: assignment.taskEvent.photographer.phone
+        from: assignment
       }
     };
     return s3.putObject(params).promise().then(function () {
-      return BbPromise.resolve({
+      return Promise.resolve({
         assignment: assignment,
         image: "".concat(constants.IMAGE_BUCKET, "/").concat(bucketKey) // TODO this assumes parity between bucket name and website URI
 
       });
     }, function (ex) {
-      return BbPromise.reject(new ServerError("Error placing image into S3: ".concat(ex)));
+      return Promise.reject(new ServerError("Error placing image into S3: ".concat(ex)));
     } // eslint-disable-line comma-dangle
     );
   },
@@ -359,30 +301,15 @@ var impl = {
    * @param results The results of the placeImage, containing the assignment and new image location
    */
   sendStepSuccess: function sendStepSuccess(results) {
-    var taskEvent = results.assignment.taskEvent;
-    taskEvent.image = results.image;
-    taskEvent.success = 'true';
     var params = {
-      output: JSON.stringify(taskEvent),
-      taskToken: results.assignment.taskToken
+      FunctionName: 'product-photos-receive-success-dev-success',
+      InvocationType: "RequestResponse",
+      Payload:  JSON.stringify(taskEvent)
     };
-    return stepfunctions.sendTaskSuccess(params).promise().then(function () {
-      return BbPromise.resolve(taskEvent);
-    }, function (err) {
-      return BbPromise.reject(new ServerError("Error sending success to Step Function: ".concat(err)));
-    } // eslint-disable-line comma-dangle
-    );
+    lambda.invoke(params, function(r) {
+      callback(r)
+    });
   },
-  userErrorResp: function userErrorResp(error) {
-    var msg = new Twilio.TwimlResponse();
-    msg.message(error.message);
-    return msg.toString();
-  },
-  thankYouForImage: function thankYouForImage(taskEvent) {
-    var msg = new Twilio.TwimlResponse();
-    msg.message("Thanks so much ".concat(taskEvent.photographer.name, "!"));
-    return msg.toString();
-  }
   /**
    * API (External)
    */
@@ -390,27 +317,18 @@ var impl = {
 };
 module.exports = {
   handler: function handler(event, context, callback) {
-    impl.validateApiGatewayRequest(event).then(impl.ensureAuthTokenDecrypted).then(impl.validateTwilioRequest).then(impl.getResources).then(impl.storeImage).then(impl.sendStepSuccess).then(impl.thankYouForImage).then(function (msg) {
-      var response = util.response(200, msg);
-      response.headers['Content-Type'] = 'text/xml';
-      callback(null, response);
-    })["catch"](ClientError, function (ex) {
-      console.log("".concat(constants.MODULE, " - ").concat(ex.stack));
-      callback(null, util.response(400, "".concat(ex.name, ": ").concat(ex.message)));
-    })["catch"](AuthError, function (ex) {
-      console.log("".concat(constants.MODULE, " - ").concat(ex.stack));
-      callback(null, util.response(403, constants.ERROR_UNAUTHORIZED));
-    })["catch"](UserError, function (ex) {
-      console.log("".concat(constants.MODULE, " - ").concat(ex.stack));
-      var response = util.response(200, impl.userErrorResp(ex));
-      response.headers['Content-Type'] = 'text/xml';
-      callback(null, response);
-    })["catch"](ServerError, function (ex) {
-      console.log("".concat(constants.MODULE, " - ").concat(ex.stack));
-      callback(null, util.response(500, ex.name));
-    })["catch"](function (ex) {
-      console.log("".concat(constants.MODULE, " - Uncaught exception: ").concat(ex.stack));
-      callback(null, util.response(500, constants.ERROR_SERVER));
-    });
+    impl.getResources(event)
+        .then(impl.storeImage)
+        .then(impl.sendStepSuccess)
+        .catch((e) => {
+          var params = {
+            FunctionName: 'product-photos-fail-dev-fail',
+            InvocationType: "RequestResponse",
+            Payload:  JSON.stringify(e)
+          };
+          lambda.invoke(params, function(r) {
+            callback(r)
+          });
+        });
   }
 };

@@ -33,14 +33,14 @@ function writeToKinesis(streamName, data, partitionKey) {
     if (err) {
       console.error(err);
     } else {
-      console.log('kinesis response: ', res);
+      // console.log('kinesis response: ', res);
     }
   });
 }
 
 if (process.argv.length < 5) {
-  console.log('Missing arguments.  Usage: node put-retail-stream-event.js < streamName > < path to json file with event data > < partitionKey >.');
-  console.log('Example: $ node put-retail-stream-event.js BIMXStream ./product-create-event.json 9000002');
+  // console.log('Missing arguments.  Usage: node put-retail-stream-event.js < streamName > < path to json file with event data > < partitionKey >.');
+  // console.log('Example: $ node put-retail-stream-event.js BIMXStream ./product-create-event.json 9000002');
 } else {
   var event = require(process.argv[3]); // eslint-disable-line global-require, import/no-dynamic-require
 

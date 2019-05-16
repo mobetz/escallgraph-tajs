@@ -10,7 +10,7 @@ var constants = {
   METHOD_UPDATE_ASSIGNMENT: 'updateAssignment',
   METHOD_HANDLER: 'handler',
   // External Values
-  TABLE_PHOTO_ASSIGNMENTS_NAME: process.env.TABLE_PHOTO_ASSIGNMENTS_NAME
+  TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE'
 };
 var impl = {
   /**
@@ -91,6 +91,6 @@ var impl = {
 };
 
 exports.handler = function (event, context, callback) {
-  console.log(JSON.stringify(event));
+  // console.log(JSON.stringify(event));
   impl.deleteAssignment(event, callback);
 };

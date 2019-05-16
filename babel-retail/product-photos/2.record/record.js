@@ -4,28 +4,13 @@ var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, impor
 
 
 var dynamo = new aws.DynamoDB.DocumentClient();
-var stepfunctions = new aws.StepFunctions();
 var constants = {
   MODULE: 'record.js',
   METHOD_PUT_ASSIGNMENT: 'putToken',
   RECEIVE_ACTIVITY_ARN: process.env.ACTIVITY_RECEIVE_ARN,
-  TABLE_PHOTO_ASSIGNMENTS_NAME: process.env.TABLE_PHOTO_ASSIGNMENTS_NAME
+  TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE'
 };
 var impl = {
-  getTask: function getTask(event, callback) {
-    var params = {
-      activityArn: constants.RECEIVE_ACTIVITY_ARN
-    };
-    stepfunctions.getActivityTask(params, callback);
-  },
-  failTask: function failTask(event, task, putErr, callback) {
-    var params = {
-      taskToken: task.taskToken,
-      cause: 'DynamoDb Failure',
-      error: putErr
-    };
-    stepfunctions.sendTaskFailure(params, callback);
-  },
   putAssignment: function putAssignment(event, task, callback) {
     var updated = Date.now();
     var dbParams = {
@@ -82,18 +67,8 @@ var impl = {
 };
 
 exports.handler = function (event, context, callback) {
-  console.log(JSON.stringify(event));
-  impl.getTask(event, function (getErr, task) {
-    if (getErr) {
-      callback(getErr);
-    } else {
-      impl.putAssignment(event, task, function (putErr) {
-        if (putErr) {
-          impl.failTask(event, task, putErr, callback);
-        } else {
-          callback(null, event);
-        }
+  // console.log(JSON.stringify(event));
+  impl.putAssignment(event, task, function (putErr) {
+        callback(null, event);
       });
-    }
-  });
 };

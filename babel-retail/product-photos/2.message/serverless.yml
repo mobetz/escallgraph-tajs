@@ -1,9 +1,9 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.productPhotos.messageName}
+service: product-photos-message
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   productPhotos: ${file(../productPhotos.yml)}
@@ -31,14 +31,14 @@ resources:
     MessageLogGroup:
       Type: AWS::Logs::LogGroup
       Properties:
-        LogGroupName: '/aws/lambda/${self:service}-dev-message'
+        LogGroupName: '/aws/lambda/product-photos-message-dev-message'
         RetentionInDays: 7
     # Role
     MessageRole: # role for the assignment messaging lambda
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: devProductPhotosMessage${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosMessage1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:

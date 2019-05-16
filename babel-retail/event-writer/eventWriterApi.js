@@ -205,18 +205,18 @@ var impl = {
     return impl.response(400, "".concat(constants.API_NAME, " ").concat(constants.INVALID_REQUEST, "  ").concat(error, ".  Event: '").concat(JSON.stringify(event), "'"));
   },
   kinesisError: function kinesisError(schemaName, err) {
-    // console.log(err);
+    // // console.log(err);
     return impl.response(500, "".concat(constants.API_NAME, " - ").concat(constants.INTEGRATION_ERROR, " trying to write an event for '").concat(JSON.stringify(schemaName), "'"));
   },
   success: function success(response) {
     return impl.response(200, JSON.stringify(response));
   },
   validateAndWriteKinesisEventFromApiEndpoint: function validateAndWriteKinesisEventFromApiEndpoint(event, callback) {
-    // console.log(JSON.stringify(event));
+    // // console.log(JSON.stringify(event));
     var eventData = JSON.parse(event.body);
-    // console.log(eventData);
+    // // console.log(eventData);
     var origin = eventData.origin;
-    // console.log(origin);
+    // // console.log(origin);
     delete eventData.origin;
 
     if (!eventData.schema || typeof eventData.schema !== 'string') {

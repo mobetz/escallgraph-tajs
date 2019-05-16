@@ -58,7 +58,7 @@ var constants = {
   METHOD_ENSURE_TWILIO_INITIALIZED: 'ensureAuthTokenDecrypted',
   METHOD_SEND_MESSAGE: 'sendMessage',
   // external
-  TABLE_PHOTO_REGISTRATIONS_NAME: process.env.TABLE_PHOTO_REGISTRATIONS_NAME,
+  TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE',
   TWILIO_ACCOUNT_SID_ENCRYPTED: process.env.TWILIO_ACCOUNT_SID_ENCRYPTED,
   TWILIO_AUTH_TOKEN_ENCRYPTED: process.env.TWILIO_AUTH_TOKEN_ENCRYPTED,
   TWILIO_NUMBER: process.env.TWILIO_NUMBER
@@ -122,7 +122,7 @@ var impl = {
         twilio.sdk = Twilio(twilio.accountSid, twilio.authToken);
         twilio.messagesCreate = BbPromise.promisify(twilio.sdk.messages.create);
         return BbPromise.resolve(event);
-      })["catch"](function (err) {
+      }).catch(function (err) {
         return BbPromise.reject("".concat(constants.METHOD_ENSURE_TWILIO_INITIALIZED, " - Error decrypting '").concat(err.field, "': ").concat(err.error));
       } // eslint-disable-line comma-dangle
       );
@@ -170,7 +170,7 @@ var impl = {
       to: event.photographer.phone,
       from: constants.TWILIO_NUMBER,
       body: ["Hello ".concat(event.photographer.name, "."), 'You are unassigned.', 'We will send an assignment soon!'].join('\n')
-    })["catch"](function (ex) {
+    }).catch(function (ex) {
       return BbPromise.reject("".concat(constants.METHOD_SEND_MESSAGE, " - Error sending message to photographer via Twilio: ").concat(ex));
     } // eslint-disable-line comma-dangle
     );
@@ -248,9 +248,9 @@ var impl = {
 };
 module.exports = {
   handler: function handler(event, context, callback) {
-    console.log(JSON.stringify(event, null, 2));
+    // console.log(JSON.stringify(event, null, 2));
     impl.ensureAuthTokenDecrypted(event).then(impl.failAssignment).then(impl.sendMessage).then(function (message) {
-      console.log("Success: ".concat(JSON.stringify(message, null, 2)));
+      // console.log("Success: ".concat(JSON.stringify(message, null, 2)));
       var result = event;
       delete result.photographer;
 
@@ -263,9 +263,9 @@ module.exports = {
 
 
       callback(null, result);
-    })["catch"](function (ex) {
+    }).catch(function (ex) {
       var err = "".concat(constants.MODULE, " ").concat(ex.message, ":\n").concat(ex.stack);
-      console.log(err);
+      // console.log(err);
       callback(err);
     });
   }

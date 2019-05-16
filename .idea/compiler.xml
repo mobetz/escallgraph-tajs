@@ -7,9 +7,11 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="TAJS-serverless" />
+        <module name="TAJS" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
+      <module name="TAJS" target="1.8" />
       <module name="TAJS-serverless" target="1.8" />
     </bytecodeTargetLevel>
   </component>

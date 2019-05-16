@@ -4,7 +4,7 @@ StartAt: AssignPhotographer
 States:
   AssignPhotographer:
     Type: Task
-    Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.assignName}-${self:custom.stage}-assign
+    Resource: arn:aws:lambda:us-east-1:XXX:function:assign-product-photos-dev-assign
     Retry:
       - ErrorEquals:
           - States.ALL
@@ -35,7 +35,7 @@ States:
     Next: AssignPhotographer
   SendAssignmentNotice:
     Type: Task
-    Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.messageName}-${self:custom.stage}-message
+    Resource: arn:aws:lambda:us-east-1:XXX:function:product-photos-message-dev-message
     Retry:
       - ErrorEquals:
           - States.ALL
@@ -68,7 +68,7 @@ States:
             Next: AwaitPhotoSucceed
           AwaitPhotoFail:
             Type: Task
-            Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.failName}-${self:custom.stage}-fail
+            Resource: arn:aws:lambda:us-east-1:XXX:function:product-photos-fail-dev-fail
             Retry:
               - ErrorEquals:
                   - States.ALL
@@ -86,7 +86,7 @@ States:
             Error: RepeatedFailure
           AwaitPhotoSucceed:
             Type: Task
-            Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.successName}-${self:custom.stage}-success
+            Resource: arn:aws:lambda:us-east-1:XXX:function:product-photos-receive-success-dev-success
             Retry:
               - ErrorEquals:
                   - States.ALL
@@ -108,7 +108,7 @@ States:
         States:
           RecordAssignment:
             Type: Task
-            Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.recordName}-${self:custom.stage}-record
+            Resource: arn:aws:lambda:us-east-1:XXX:function:product-photos-record-assignment-dev-record
             Retry:
               - ErrorEquals:
                   - States.ALL
@@ -142,7 +142,7 @@ States:
         Next: CompleteAssignment
   SendUnassignmentNotice:
     Type: Task
-    Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.unmessageName}-${self:custom.stage}-unmessage
+    Resource: arn:aws:lambda:us-east-1:XXX:function:${self:custom.productPhotos.unmessageName}-dev-unmessage
     Retry:
       - ErrorEquals:
           - States.ALL
@@ -160,7 +160,7 @@ States:
     Error: RepeatedFailure
   CompleteAssignment:
     Type: Task
-    Resource: arn:aws:lambda:${self:custom.private.region}:${self:custom.private.accountId}:function:${self:custom.productPhotos.reportName}-${self:custom.stage}-report
+    Resource: arn:aws:lambda:us-east-1:XXX:function:${self:custom.productPhotos.reportName}-dev-report
     Retry:
       - ErrorEquals:
           - States.ALL

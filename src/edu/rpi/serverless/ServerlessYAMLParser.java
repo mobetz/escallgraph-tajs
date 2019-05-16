@@ -55,9 +55,6 @@ public class ServerlessYAMLParser {
         public String service;
         public Map<String, ServerlessFunctionDefinition> functions;
 
-        public void setService(String service) {
-            this.service = service;
-        }
     }
 
 

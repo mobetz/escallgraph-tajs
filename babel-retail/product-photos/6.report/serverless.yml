@@ -1,9 +1,9 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.productPhotos.reportName}
+service: product-photos-report
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
@@ -30,7 +30,7 @@ functions:
       TABLE_PHOTO_REGISTRATIONS_NAME:
         Fn::ImportValue: PHOTO_REGISTRATION_TABLE
       TABLE_PHOTO_ASSIGNMENTS_NAME:
-        Fn::ImportValue: ${self:custom.productPhotos.exportPhotoAssignmentsTableName}
+        Fn::ImportValue: PHOTO_ASSIGNMENTS_TABLE
 
 resources:
   Resources:
@@ -45,7 +45,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: devProductPhotosReport${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosReport1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:

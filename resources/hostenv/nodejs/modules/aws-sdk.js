@@ -15,23 +15,38 @@ DocumentClient.prototype.scan = function (params_obj, callback) {
 
     var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
     var rows = { Items: [TAJS_join(TAJS_make('Undef'), TAJS_make('AnyStr'))] };
-    callback(err, rows);
+    if (callback) {
+        callback(err, rows);
+    }
+    return { promise: function() { return Promise.resolve(rows) }};
 };
 DocumentClient.prototype.get = function (params_obj, callback) {
-    TAJS_NOT_IMPLEMENTED('documentclient get')
+    TAJS_serverless('dynamo_get', params_obj.TableName);
+
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    var rows = { Items: [TAJS_join(TAJS_make('Undef'), TAJS_make('AnyStr'))] };
+    if (callback) {
+        callback(err, rows);
+    }
+    return { promise: function() { return Promise.resolve(rows) }};
 };
 DocumentClient.prototype.query = function (params_obj, callback) {
     TAJS_serverless('dynamo_query', params_obj.TableName);
 
     var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
     var rows = { Items: [TAJS_join(TAJS_make('Undef'), TAJS_make('AnyStr'))] };
-    callback(err, rows);
+    if (callback) {
+        callback(err, rows);
+    }
+    return { promise: function() { return Promise.resolve(rows) }};
 };
 DocumentClient.prototype.delete = function (params_obj, callback) {
     TAJS_serverless('dynamo_delete', params_obj.TableName);
 
     var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
-    callback(err);
+    if (callback) {
+        callback(err, rows);
+    }
 };
 
 
@@ -71,6 +86,12 @@ Kinesis.prototype.putRecord = function (params, callback) {
     callback(err, resp);
 };
 
+
+function lambda() {}
+Kinesis.prototype.invoke = function (params, callback) {
+    TAJS_serverless('lambda_invoke', params.FunctionName);
+    callback();
+};
 
 module.exports = {
     DynamoDB: DynamoDB,

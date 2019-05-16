@@ -23,6 +23,7 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
+var lambda = new aws.lambda();
 
 //
 // var Promise = require('bluebird');
@@ -49,7 +50,7 @@ var constants = {
   MODULE: 'assign.js',
   ERROR_SERVER: 'ServerError',
   // resources
-  TABLE_PHOTO_REGISTRATIONS_NAME: process.env.TABLE_PHOTO_REGISTRATIONS_NAME
+  TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE'
   /**
    * Errors
    */
@@ -118,141 +119,27 @@ var impl = {
       ReturnItemCollectionMetrics: 'NONE'
     };
   },
-  queryAndAssignPhotographersByAssignmentCount: Promise.coroutine(
-  /*#__PURE__*/
-  regeneratorRuntime.mark(function qP(event, assignmentCount, priorData) {
-    var queryParams, data, i, item, updateParams, updateData;
-    return regeneratorRuntime.wrap(function qP$(_context) {
-      while (1) {
-        switch (_context.prev = _context.next) {
-          case 0:
-            queryParams = impl.queryPhotographersParams(assignmentCount, priorData);
-            _context.next = 3;
-            return dynamo.query(queryParams).promise();
-
-          case 3:
-            data = _context.sent;
-            console.log("query result: ".concat(JSON.stringify(data, null, 2)));
-
-            if (!(data && data.Items && Array.isArray(data.Items) && data.Items.length)) {
-              _context.next = 23;
-              break;
-            }
-
-            i = 0;
-
-          case 7:
-            if (!(i < data.Items.length)) {
-              _context.next = 21;
-              break;
-            }
-
-            item = data.Items[i];
-            console.log(JSON.stringify(item, null, 2));
-
-            if (!( // is the current photographer assignable?
-            !item.assignment && // not assigned
-            'assignments' in item && Number.isInteger(item.assignments) && // valid assignments attribute
-            'registrations' in item && Number.isInteger(item.registrations) && // valid registrations attribute
-            item.assignments < item.registrations // fewer successful assignments than registrations
-            )) {
-              _context.next = 18;
-              break;
-            }
-
-            updateParams = impl.updatePhotographerParams(event, item);
-            _context.next = 14;
-            return dynamo.update(updateParams).promise().then(function () {
-              return Promise.resolve(true);
-            }, function (err) {
-              if (err.code && err.code === 'ConditionalCheckFailedException') {
-                // don't fail, another claimant obtained the photographer since we queried above
-                return Promise.resolve();
-              } else {
-                return Promise.reject(new ServerError(err));
-              }
-            } // eslint-disable-line comma-dangle
-            );
-
-          case 14:
-            updateData = _context.sent;
-            console.log("update result: ".concat(JSON.stringify(updateData, null, 2)));
-
-            if (!updateData) {
-              _context.next = 18;
-              break;
-            }
-
-            return _context.abrupt("return", Promise.resolve(item));
-
-          case 18:
-            i++;
-            _context.next = 7;
-            break;
-
-          case 21:
-            if (!data.LastEvaluatedKey) {
-              _context.next = 23;
-              break;
-            }
-
-            return _context.abrupt("return", impl.queryAndAssignPhotographersByAssignmentCount(event, assignmentCount, data));
-
-          case 23:
-            return _context.abrupt("return", Promise.resolve());
-
-          case 24:
-          case "end":
-            return _context.stop();
-        }
+  queryAndAssignPhotographersByAssignmentCount: function (event, i) {
+    var queryParams = impl.queryPhotographersParams(assignmentCount, priorData);
+    var data = dynamo.query(queryParams);
+    if (data && data.Items && Array.isArray(data.Items) && data.Items.length) {
+      var item = data.Items[0];
+      if ( /*check if photographer has too few assignments*/ true) {
+        var updateParams = impl.updatePhotographerParams(event, item);
+        dynamo.update(updateParams);
       }
-    }, qP);
-  })),
-  assignPhotographers: Promise.coroutine(
-  /*#__PURE__*/
-  regeneratorRuntime.mark(function aP(event) {
-    var photographer, i;
-    return regeneratorRuntime.wrap(function aP$(_context2) {
-      while (1) {
-        switch (_context2.prev = _context2.next) {
-          case 0:
-            i = 0;
-
-          case 1:
-            if (!(i < 30)) {
-              _context2.next = 11;
-              break;
-            }
-
-            _context2.next = 4;
-            return impl.queryAndAssignPhotographersByAssignmentCount(event, i);
-
-          case 4:
-            photographer = _context2.sent;
-            console.log("queryPhotographers[".concat(i, "] result: ").concat(JSON.stringify(photographer, null, 2)));
-
-            if (!photographer) {
-              _context2.next = 8;
-              break;
-            }
-
-            return _context2.abrupt("break", 11);
-
-          case 8:
-            i++;
-            _context2.next = 1;
-            break;
-
-          case 11:
-            return _context2.abrupt("return", Promise.resolve(photographer));
-
-          case 12:
-          case "end":
-            return _context2.stop();
-        }
+    }
+  },
+  assignPhotographers: function(event) {
+    var photographer;
+    for (var i=0; i<30; i++) {
+      photographer = impl.queryAndAssignPhotographersByAssignmentCount(event, i);
+      if (photographer) {
+        break;
       }
-    }, aP);
-  })) // Example event:
+    }
+    return Promise.resolve(photographer);
+  } // Example event:
   // {
   //   schema: 'com.nordstrom/retail-stream/1-0-0',
   //   origin: 'hello-retail/product-producer-automation',
@@ -270,7 +157,7 @@ var impl = {
 };
 
 exports.handler = function (event, context, callback) {
-  console.log(JSON.stringify(event));
+  // console.log(JSON.stringify(event));
   var result = event;
 
   if (!result.photographers || !Array.isArray(result.photographers)) {
@@ -284,13 +171,38 @@ exports.handler = function (event, context, callback) {
       result.photographers.push(result.photographer.id);
       result.assigned = 'true';
       result.assignmentComplete = 'false';
+
+      var params = {
+        FunctionName: 'product-photos-message-dev-message',
+        InvocationType: "RequestResponse",
+        Payload:  JSON.stringify(result)
+      };
+      lambda.invoke(params, function(r) {
+        callback(r)
+      });
     } else {
       result.assigned = 'false';
+      var params = {
+        FunctionName: 'assign-product-photos-dev-assign',
+        InvocationType: "RequestResponse",
+        Payload:  JSON.stringify(result)
+      };
+      lambda.invoke(params, function(r) {
+        callback(r)
+      });
+      var params = {
+        FunctionName: 'product-photos-record-assignment-dev-record',
+        InvocationType: "RequestResponse",
+        Payload:  JSON.stringify(result)
+      };
+      lambda.invoke(params, function(r) {
+        callback(r)
+      })
     }
 
     callback(null, result);
-  })["catch"](function (ex) {
-    console.log("".concat(constants.MODULE, " - Unexpected exception: ").concat(ex.stack));
+  }).catch(function (ex) {
+    // console.log("".concat(constants.MODULE, " - Unexpected exception: ").concat(ex.stack));
     callback(ex);
   });
 };

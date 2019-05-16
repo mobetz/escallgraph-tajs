@@ -1,9 +1,9 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.productPhotos.recordName}
+service: product-photos-record-assignment
 
 custom:
-  stage: ${opt:stage, self:provider.stage, self:custom.private.stage}
+  stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   productPhotos: ${file(../productPhotos.yml)}
@@ -24,7 +24,7 @@ functions:
     environment:
       ACTIVITY_RECEIVE_ARN: ${self:custom.productPhotos.receiveActivityArn}
       TABLE_PHOTO_ASSIGNMENTS_NAME:
-        Fn::ImportValue: ${self:custom.productPhotos.exportPhotoAssignmentsTableName}
+        Fn::ImportValue: PHOTO_ASSIGNMENTS_TABLE
 
 resources:
   Resources:
@@ -39,7 +39,7 @@ resources:
       Type: AWS::IAM::Role
       Properties:
         Path: /
-        RoleName: devProductPhotosRecord${self:custom.productPhotos.productPhotosVersion}
+        RoleName: devProductPhotosRecord1
         AssumeRolePolicyDocument:
           Version: '2012-10-17'
           Statement:
