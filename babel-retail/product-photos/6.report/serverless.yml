@@ -7,7 +7,7 @@ custom:
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
-  retailStream: ${file(../../retail-stream/serverless.yml)}
+  retailStream: ${file(../../retail-stream/resources.yml)}
   productPhotos: ${file(../productPhotos.yml)}
 
 provider:

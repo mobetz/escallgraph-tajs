@@ -8,7 +8,10 @@ DocumentClient.prototype.update = function (params_obj, callback) {
     callback(err);
 };
 DocumentClient.prototype.put = function (params_obj, callback) {
-    TAJS_NOT_IMPLEMENTED('documentclient put')
+    TAJS_serverless('dynamo_put', params_obj.TableName);
+
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    callback(err);
 };
 DocumentClient.prototype.scan = function (params_obj, callback) {
     TAJS_serverless('dynamo_scan', params_obj.TableName);
@@ -45,7 +48,7 @@ DocumentClient.prototype.delete = function (params_obj, callback) {
 
     var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
     if (callback) {
-        callback(err, rows);
+        callback(err);
     }
 };
 
@@ -79,7 +82,7 @@ var DynamoDB = {
 function Kinesis() {}
 
 Kinesis.prototype.putRecord = function (params, callback) {
-    TAJS_serverless('kinesis_put', params.schema);
+    TAJS_serverless('kinesis_put', params.StreamName);
 
     var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
     var resp = { Items: [TAJS_join(TAJS_make('Undef'), TAJS_make('AnyStr'))] };
@@ -87,8 +90,8 @@ Kinesis.prototype.putRecord = function (params, callback) {
 };
 
 
-function lambda() {}
-Kinesis.prototype.invoke = function (params, callback) {
+function Lambda() {}
+Lambda.prototype.invoke = function (params, callback) {
     TAJS_serverless('lambda_invoke', params.FunctionName);
     callback();
 };
@@ -97,5 +100,6 @@ module.exports = {
     DynamoDB: DynamoDB,
     SES: SES,
     S3: S3,
-    Kinesis: Kinesis
+    Kinesis: Kinesis,
+    Lambda: Lambda
 };

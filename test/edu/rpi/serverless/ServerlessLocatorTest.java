@@ -17,12 +17,12 @@ public class ServerlessLocatorTest {
 
         Set<Path> serverless_files = ServerlessLocator.findInDirectory(Paths.get("babel-retail"));
         Path[] expecteds = {
-                Paths.get("babel-retail/cart/api/serverless.yml"),
-                Paths.get("babel-retail/cart/builder/serverless.yml"),
-                Paths.get("babel-retail/event-writer/serverless.yml"),
-                Paths.get("babel-retail/product-catalog/api/serverless.yml"),
-                Paths.get("babel-retail/product-catalog/builder/serverless.yml"),
-                Paths.get("babel-retail/retail-stream/serverless.yml"),
+                Paths.get("babel-retail/cart/api/resources.yml"),
+                Paths.get("babel-retail/cart/builder/resources.yml"),
+                Paths.get("babel-retail/event-writer/resources.yml"),
+                Paths.get("babel-retail/product-catalog/api/resources.yml"),
+                Paths.get("babel-retail/product-catalog/builder/resources.yml"),
+                Paths.get("babel-retail/retail-stream/resources.yml"),
         };
         assertTrue(serverless_files.containsAll(Arrays.asList(expecteds)));
     }

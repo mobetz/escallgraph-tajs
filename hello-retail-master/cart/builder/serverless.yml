@@ -7,7 +7,7 @@ custom:
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
-  retailStream: ${file(../../retail-stream/serverless.yml)}
+  retailStream: ${file(../../retail-stream/resources.yml)}
   cartBuilder: ${self:}
   # Exports
   exportCartTableName: ${self:custom.cartBuilder.service}:dev:CartTableName

@@ -6,7 +6,7 @@ custom:
   stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
-  retailStream: ${file(../../retail-stream/serverless.yml)}
+  retailStream: ${file(../../retail-stream/resources.yml)}
   retailStreamVersion: 1
   productPhotos: ${file(../productPhotos.yml)}
 

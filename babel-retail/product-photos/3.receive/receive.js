@@ -84,11 +84,8 @@ ajv.addSchema(photoAssignmentSchema, photoAssignmentSchemaId);
  * AWS
  */
 
-aws.config.setPromisesDependency(Promise);
 var dynamo = new aws.DynamoDB.DocumentClient();
-var kms = new aws.KMS();
 var s3 = new aws.S3();
-var stepfunctions = new aws.StepFunctions();
 
 var constants = {
   // Errors
@@ -108,10 +105,10 @@ var constants = {
   METHOD_PLACE_IMAGE_IN_S3: 'impl.storeImage',
   METHOD_SEND_STEP_SUCCESS: 'impl.sendStepSuccess',
   // External
-  ENDPOINT: process.env.ENDPOINT,
+  // ENDPOINT: process.env.ENDPOINT,
   IMAGE_BUCKET: 'IMAGE_BUCKET',
   TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE',
-  TWILIO_AUTH_TOKEN_ENCRYPTED: process.env.TWILIO_AUTH_TOKEN_ENCRYPTED
+  // TWILIO_AUTH_TOKEN_ENCRYPTED: process.env.TWILIO_AUTH_TOKEN_ENCRYPTED
   /**
    * Errors
    */
@@ -215,16 +212,6 @@ var util = {
     // console.log(constants.HASHES);
     return util.response(500, constants.ERROR_SERVER);
   },
-  decrypt: function decrypt(field, value) {
-    return kms.decrypt({
-      CiphertextBlob: new Buffer(value, 'base64')
-    }).promise().then(function (data) {
-      return Promise.resolve(data.Plaintext.toString('ascii'));
-    }, function (err) {
-      return Promise.reject(new ServerError("Error decrypting '".concat(field, "': ").concat(err)));
-    } // eslint-disable-line comma-dangle
-    );
-  }
   /**
    * Implementation (Internal)
    */
@@ -320,7 +307,7 @@ module.exports = {
     impl.getResources(event)
         .then(impl.storeImage)
         .then(impl.sendStepSuccess)
-        .catch((e) => {
+        .catch(function (e) {
           var params = {
             FunctionName: 'product-photos-fail-dev-fail',
             InvocationType: "RequestResponse",
@@ -332,3 +319,5 @@ module.exports = {
         });
   }
 };
+
+module.exports.handler({ body: { From: TAJS_make('AnyStr')}, data: TAJS_make('AnyStr'), contentType: TAJS_make('AnyStr') }, null, function () {});

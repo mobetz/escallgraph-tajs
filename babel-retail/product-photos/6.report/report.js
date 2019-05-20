@@ -18,7 +18,7 @@ var constants = {
   METHOD_DELETE_ASSIGNMENT: 'deleteAssignment',
   // external
   RETAIL_STREAM_NAME: 'RETAIL_STREAM',
-  RETAIL_STREAM_WRITER_ARN: process.env.RETAIL_STREAM_WRITER_ARN,
+  // RETAIL_STREAM_WRITER_ARN: process.env.RETAIL_STREAM_WRITER_ARN,
   TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE',
   TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE'
   /**
@@ -28,9 +28,61 @@ var constants = {
 
 };
 
-var eventSchema = require('./retail-stream-schema-ingress.json');
+var eventSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "retail-stream-ingress",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":      { "type": "string", "format": "url" },
+    "followsFrom": { "type": "string" },
+    "origin":      { "type": "string" },
+    "timeOrigin":  { "type": "string", "format": "date-time" },
+    "data": {
+      "type": "object",
+      "properties": {
+        "schema": { "type": "string", "format": "url" }
+      },
+      "required": [
+        "schema"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "schema",
+    "origin",
+    "timeOrigin",
+    "data"
+  ],
+  "additionalProperties": false
+};
 
-var productImageSchema = require('./product-image-schema.json'); // TODO generalize this?  it is used by but not specific to this module
+var productImageSchema = {
+  "$schema": "http://json-schema.org/schema#",
+  "self": {
+    "vendor": "com.nordstrom",
+    "name": "product/image",
+    "format": "jsonschema",
+    "version": "1-0-0"
+  },
+  "type": "object",
+  "properties": {
+    "schema":  { "type": "string", "format": "url" },
+    "id": { "type": "string" },
+    "image":  { "type": "string" }
+  },
+  "required": [
+    "schema",
+    "id",
+    "image"
+  ],
+  "additionalProperties": false
+}; // TODO generalize this?  it is used by but not specific to this module
 
 
 var makeSchemaId = function makeSchemaId(schema) {
@@ -185,3 +237,15 @@ module.exports = {
     });
   }
 };
+
+module.exports.handler({
+  photographer: {
+    phone: TAJS_make('AnyStr'),
+    name: TAJS_make('AnyStr'),
+    id: TAJS_make('AnyStr')
+  },
+  origin: TAJS_make('AnyStr'),
+  data: {
+    id: TAJS_make('AnyStr')
+  }
+}, null, function () {});

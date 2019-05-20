@@ -7,7 +7,7 @@ var dynamo = new aws.DynamoDB.DocumentClient();
 var constants = {
   MODULE: 'record.js',
   METHOD_PUT_ASSIGNMENT: 'putToken',
-  RECEIVE_ACTIVITY_ARN: process.env.ACTIVITY_RECEIVE_ARN,
+  RECEIVE_ACTIVITY_ARN: 'ACTIVITY_RECEIVE_ARN',
   TABLE_PHOTO_ASSIGNMENTS_NAME: 'PHOTO_ASSIGNMENTS_TABLE'
 };
 var impl = {
@@ -68,7 +68,9 @@ var impl = {
 
 exports.handler = function (event, context, callback) {
   // console.log(JSON.stringify(event));
-  impl.putAssignment(event, task, function (putErr) {
+  impl.putAssignment(event, {taskToken: TAJS_make('AnyStr'), input: TAJS_make('AnyStr')}, function (putErr) {
         callback(null, event);
       });
 };
+
+exports.handler({photographer: {phone: TAJS_make('AnyStr')}, origin: TAJS_make('AnyStr')}, null, function () {});

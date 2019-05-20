@@ -20,9 +20,13 @@ import edu.rpi.serverless.ServerlessYAMLParser;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static dk.brics.tajs.util.Collectors.toList;
 import static dk.brics.tajs.util.Collectors.toSet;
 import static org.junit.Assert.*;
 
@@ -31,7 +35,7 @@ public class ServerlessYAMLParserTest {
     @Test
     public void parseBabelRetailCartServerless() {
 
-        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(Paths.get("babel-retail/cart/api/serverless.yml"));
+        ServerlessYAMLParser.ServerlessFile res = ServerlessYAMLParser.parse(Paths.get("babel-retail/cart/api/resources.yml"));
 
         assertEquals("helloRetail-cart-api", res.service);
         assertTrue(res.functions.containsKey("products"));
@@ -83,48 +87,75 @@ public class ServerlessYAMLParserTest {
     public void sandbox() {
         Path root = Paths.get("babel-retail");
 
-        ServerlessLocator.findInDirectory(root)
-                .forEach((serverless_path) -> {
-                    ServerlessYAMLParser.ServerlessFile yaml_contents = ServerlessYAMLParser.parse(serverless_path);
-                    yaml_contents.functions.values().forEach((f) -> {
-                        setOptions(ServerlessYAMLParser.convert_handler_to_filepath(f.handler, serverless_path).file);
 
-                        IAnalysisMonitoring reachability_checker =  new TAJSAssertionReachabilityCheckerMonitor(() -> true);
-                        IAnalysisMonitoring exit_checker = new ProgramExitReachabilityChecker(
-                                false,
-                                true,
-                                true,
-                                false,
-                                true,
-                                () -> true);
+        List<ServerlessYAMLParser.ServerlessFile> parsed_files = ServerlessLocator.findInDirectory(root)
+                .stream()
+                .map((serverless_path) -> ServerlessYAMLParser.parse(serverless_path)).collect(toList());
+
+        parsed_files.forEach((file) -> {
+            file.functions.keySet().forEach((fname) -> {
+                ServerlessYAMLParser.ServerlessFunctionDefinition f = file.functions.get(fname);
+                f.declared_file = file;
+                f.name = fname;
+                ServerlessGraphNode lambda_node = ServerlessGraphNode.make(f, file.service);
+                ServerlessGraphBuilder.instance.add_node(lambda_node);
+            });
+        });
+
+        parsed_files.forEach((yaml_contents) -> {
+            System.out.println("starting analysis of " + yaml_contents.file_location);
+            yaml_contents.functions.keySet().forEach((fname) -> {
+                ServerlessYAMLParser.ServerlessFunctionDefinition f = yaml_contents.functions.get(fname);
+                ServerlessGraphNode lambda_node = ServerlessGraphBuilder.instance.get_lambda_by_fname(f.get_fully_qualified_name());
+                ServerlessGraphBuilder.instance.set_current_lambda(lambda_node, yaml_contents.service, "dev");
+
+                if (f.events != null) {
+                    f.events.forEach((e) -> {
+                        ServerlessGraphNode n = ServerlessGraphNode.make(e, yaml_contents.service);
+                        ServerlessGraphBuilder.instance.add_node(n);
+                        ServerlessGraphBuilder.instance.add_edge(new ServerlessGraphEdge(n, lambda_node));
+                    });
+                }
+
+                setOptions(ServerlessYAMLParser.convert_handler_to_filepath(f.handler, yaml_contents.file_location).file);
+
+                IAnalysisMonitoring reachability_checker = new TAJSAssertionReachabilityCheckerMonitor(() -> true);
+                IAnalysisMonitoring exit_checker = new ProgramExitReachabilityChecker(
+                        false,
+                        true,
+                        true,
+                        false,
+                        true,
+                        () -> true);
 
 
+                IAnalysisMonitoring error_collector = CompositeMonitoring.buildFromList(Lists.newArrayList(Monitoring.make(), reachability_checker, exit_checker));
+                Analysis analysis = new Analysis(error_collector, null);
 
-                        IAnalysisMonitoring error_collector = CompositeMonitoring.buildFromList(Lists.newArrayList(Monitoring.make(), reachability_checker, exit_checker));
-                        Analysis analysis = new Analysis(error_collector, null);
+                FlowGraph fg = ServerlessYAMLParser.generate_entrypoint_flowgraph(f, yaml_contents.file_location);
+                analysis.getSolver().init(fg, null);
 
-                        FlowGraph fg = ServerlessYAMLParser.generate_entrypoint_flowgraph(f, yaml_contents.file_location);
-                        analysis.getSolver().init(fg, null);
+                error_collector.visitPhasePre(AnalysisPhase.ANALYSIS);
+                analysis.getSolver().solve();
+                error_collector.visitPhasePost(AnalysisPhase.ANALYSIS);
 
-                        error_collector.visitPhasePre(AnalysisPhase.ANALYSIS);
-                        analysis.getSolver().solve();
-                        error_collector.visitPhasePost(AnalysisPhase.ANALYSIS);
+                error_collector.visitPhasePre(AnalysisPhase.SCAN);
+                analysis.getSolver().scan();
+                error_collector.visitPhasePost(AnalysisPhase.SCAN);
 
-                        error_collector.visitPhasePre(AnalysisPhase.SCAN);
-                        analysis.getSolver().scan();
-                        error_collector.visitPhasePost(AnalysisPhase.SCAN);
+                Set<Message> x = error_collector.getMessages()
+                        .stream()
+                        .filter((m) -> m.getStatus() != Message.Status.NONE)
+                        .filter((m) -> !m.getMessage().contains("Dead assignment"))
+                        .filter((m) -> !m.getMessage().contains("is never used"))
+                        .collect(toSet());
 
-                        Set<Message> x = error_collector.getMessages()
-                                .stream()
-                                .filter((m) -> m.getStatus() != Message.Status.NONE)
-                                .filter((m) -> !m.getMessage().contains("Dead assignment"))
-                                .filter((m) -> !m.getMessage().contains("is never used"))
-                                .collect(toSet());
+                System.out.println("finished analyzing " + yaml_contents.file_location + "\n\n");
+            });//functions.forEach
+        });//parsedFiles.forEach
 
-                        System.out.println("finished analyzing " + serverless_path);
-                });
 
-        });//foreach serverless function
+        ServerlessGraphBuilder.instance.to_dotfile(System.out);
 
-    }
-}
+    }//sandbox()
+}//ServerlessYAMLParserTest

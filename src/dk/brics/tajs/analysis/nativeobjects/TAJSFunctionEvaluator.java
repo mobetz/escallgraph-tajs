@@ -55,6 +55,7 @@ import dk.brics.tajs.util.AnalysisLimitationException;
 import dk.brics.tajs.util.AnalysisResultException;
 import dk.brics.tajs.util.Collectors;
 import dk.brics.tajs.util.PathAndURLUtils;
+import edu.rpi.serverless.*;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -740,14 +741,23 @@ public class TAJSFunctionEvaluator {
                     Value params = FunctionCalls.readParameter(call, state, 1);
                     switch (serverless_type) {
                         case "dynamo_query":
-                            break;
+                        case "dynamo_get":
                         case "dynamo_scan":
-                            break;
                         case "dynamo_update":
-                            break;
+                        case "dynamo_put":
                         case "dynamo_delete":
+                            ServerlessGraphNode dynamo_target = new DynamoGraphNode("us-east-1", "XXX", params.getStr());
+                            ServerlessGraphBuilder.instance.add_node(dynamo_target);
+                            ServerlessGraphBuilder.instance.add_edge_from_current_to(dynamo_target);
                             break;
                         case "kinesis_put":
+                            ServerlessGraphNode kinesis_target = new StreamGraphNode(ServerlessGraphNode.ArnTypes.KINESIS, "us-east-1", "XXX", params.getStr());
+                            ServerlessGraphBuilder.instance.add_node(kinesis_target);
+                            ServerlessGraphBuilder.instance.add_edge_from_current_to(kinesis_target);
+                            break;
+                        case "lambda_invoke":
+                            ServerlessGraphNode lambda_target = ServerlessGraphBuilder.instance.get_lambda_by_fname(params.getStr());
+                            ServerlessGraphBuilder.instance.add_edge_from_current_to(lambda_target);
                             break;
                         default:
                             throw new AnalysisException("Unhandled serverless event type");

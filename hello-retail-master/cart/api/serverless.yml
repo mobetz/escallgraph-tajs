@@ -7,9 +7,9 @@ custom:
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
   retailStreamVersion: 1
-  retailStream: ${file(../../retail-stream/serverless.yml)}
+  retailStream: ${file(../../retail-stream/resources.yml)}
   cartBuilderVersion: 1
-  cartBuilder: ${file(../builder/serverless.yml)}
+  cartBuilder: ${file(../builder/resources.yml)}
   cartApiVersion: 1
 
 provider:

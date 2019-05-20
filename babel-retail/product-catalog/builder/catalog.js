@@ -262,3 +262,4 @@ module.exports.processKinesisEvent({origin: TAJS_make('AnyStr'), data: {
   brand: TAJS_make('AnyStr'),
   name: TAJS_make('AnyStr')
 }}, function(){});
+

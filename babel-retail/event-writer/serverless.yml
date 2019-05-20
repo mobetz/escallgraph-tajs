@@ -6,10 +6,10 @@ custom:
   stage: dev
   private: ${file(../private.yml)}
   helloRetail: ${file(../helloRetail.yml)}
-  retailStream: ${file(../retail-stream/serverless.yml)}
+  retailStream: ${file(../retail-stream/resources.yml)}
   retailStreamVersion: 1
   eventWriterApiVersion: 1 # The version of this service to depend upon
-  eventWriterApi: ${self:} # externally, use `${file(~/event-writer/serverless.yml)}`, replacing the `~` therein with the appropriate relative reference [e.g. '..' or '../..']
+  eventWriterApi: ${self:} # externally, use `${file(~/event-writer/resources.yml)}`, replacing the `~` therein with the appropriate relative reference [e.g. '..' or '../..']
   # Exports
   exportEventWriterRestApi: ${self:custom.eventWriterApi.service}:dev:EventWriterRestApi:${self:custom.eventWriterApiVersion}
 
@@ -33,17 +33,7 @@ functions:
       - http:
           path: event-writer
           method: post
-          cors:
-            origins:
-              - '*'
-            headers:
-              - Content-Type
-              - X-Amz-Date
-              - Authorization
-              - X-Api-Key
-              - X-Amz-Security-Token
-              - X-Amz-User-Agent
-            allowCredentials: false
+          cors: true
 
 resources:
   Resources:

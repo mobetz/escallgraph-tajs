@@ -2,7 +2,7 @@
 
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
 var SES = new aws.SES();
-var lambda = new aws.lambda();
+var lambda = new aws.Lambda();
 /**
  * AWS
  */
@@ -138,3 +138,9 @@ module.exports = {
     });
   }
 };
+
+module.exports.handler({
+  photographer: {email: TAJS_make('AnyStr'), name: TAJS_make('AnyStr')},
+  data: { name: TAJS_make('AnyStr')},
+  merchantName: TAJS_make('AnyStr')
+}, null, function () {});

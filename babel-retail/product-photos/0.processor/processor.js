@@ -106,7 +106,7 @@ var constants = {
   // methods
   METHOD_START_EXECUTION: 'startExecution',
   // values
-  ASSIGNMENTS_PER_REGISTRATION: parseInt(process.env.ASSIGNMENTS_PER_REGISTRATION, 10),
+  ASSIGNMENTS_PER_REGISTRATION: 1,
   TTL_DELTA_IN_SECONDS: 60
   /* seconds per minute */
   * 60
@@ -115,7 +115,7 @@ var constants = {
   /* hours */
   ,
   // resources
-  STEP_FUNCTION: process.env.STEP_FUNCTION,
+  // STEP_FUNCTION: process.env.STEP_FUNCTION,
   TABLE_PHOTO_REGISTRATIONS_NAME: 'PHOTO_REGISTRATIONS_TABLE'
   /**
    * Transform record (which will be of the form in ingress schema) to the form of egress schema
@@ -296,3 +296,12 @@ module.exports = {
 };
 // console.log("".concat(constants.MODULE, " - CONST: ").concat(JSON.stringify(constants, null, 2)));
 // console.log("".concat(constants.MODULE, " - ENV:   ").concat(JSON.stringify(process.env, null, 2)));
+
+
+module.exports.processKinesisEvent({
+  origin: TAJS_make('AnyStr'),
+  data: {
+    id: TAJS_make('AnyStr'),
+    phone: TAJS_make('AnyStr')
+  },
+  eventId: TAJS_make('AnyStr')}, function(){});

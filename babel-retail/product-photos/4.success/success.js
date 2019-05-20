@@ -27,19 +27,26 @@
  * @param callback see Lambda docs
  */
 
-exports.handler = function (event, context, callback) {
-  // console.log(JSON.stringify(event));
-  var result = event;
-  result.assignmentComplete = 'true';
+var aws = require("aws-sdk");
+var lambda = new aws.Lambda();
+
+module.exports = {
+  handler: function (event, context, callback) {
+    // console.log(JSON.stringify(event));
+    var result = event;
+    result.assignmentComplete = 'true';
 
 
-  var params = {
-    FunctionName: 'product-photos-report-dev-',
-    InvocationType: "RequestResponse",
-    Payload:  JSON.stringify(taskEvent)
-  };
-  lambda.invoke(params, function(r) {
-    callback(r)
-  });
-  callback(null, result);
+    var params = {
+      FunctionName: 'product-photos-report-dev-report',
+      InvocationType: "RequestResponse",
+      Payload: result
+    };
+    lambda.invoke(params, function (r) {
+      callback(r)
+    });
+    callback(null, result);
+  }
 };
+
+module.exports.handler({}, null, function () {});

@@ -30,18 +30,31 @@ public class ServerlessYAMLParser {
         public boolean cors;
     }
 
+    public static class ServerlessStreamTrigger {
+        public ServerlessStreamTrigger() {}
+
+        public String arn;
+        public boolean enabled;
+        public String startingPosition;
+    }
     public static class ServerlessFunctionTrigger {
         public ServerlessFunctionTrigger() {}
 
         public ServerlessHTTPTrigger http;
+        public ServerlessStreamTrigger stream;
     }
 
     public static class ServerlessFunctionDefinition {
         public ServerlessFunctionDefinition() {}
-
+        public ServerlessFile declared_file;
+        public String name;
         public String handler;
         public Map<String, String> environment;
         public Collection<ServerlessFunctionTrigger> events;
+
+        public String get_fully_qualified_name() {
+            return String.format("%s-%s-%s", this.declared_file.service, "dev", this.name);
+        }
     }
 
     public static class ServerlessFile {
@@ -103,6 +116,7 @@ public class ServerlessYAMLParser {
     public static FlowGraph generate_entrypoint_flowgraph(ServerlessFunctionDefinition serverless_func, Path serverless_filepath) {
 
         HandlerPath entrypoint = convert_handler_to_filepath(serverless_func.handler, serverless_filepath);
+
 
         try {
             URL file_url = entrypoint.file.toUri().toURL();

@@ -23,7 +23,7 @@ function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || func
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
 var aws = require('aws-sdk'); // eslint-disable-line import/no-unresolved, import/no-extraneous-dependencies
-var lambda = new aws.lambda();
+var lambda = new aws.Lambda();
 
 //
 // var Promise = require('bluebird');
@@ -119,7 +119,8 @@ var impl = {
       ReturnItemCollectionMetrics: 'NONE'
     };
   },
-  queryAndAssignPhotographersByAssignmentCount: function (event, i) {
+  queryAndAssignPhotographersByAssignmentCount: function (event, assignmentCount) {
+    var priorData = {};
     var queryParams = impl.queryPhotographersParams(assignmentCount, priorData);
     var data = dynamo.query(queryParams);
     if (data && data.Items && Array.isArray(data.Items) && data.Items.length) {
@@ -128,7 +129,9 @@ var impl = {
         var updateParams = impl.updatePhotographerParams(event, item);
         dynamo.update(updateParams);
       }
+      return item;
     }
+    return null;
   },
   assignPhotographers: function(event) {
     var photographer;
@@ -138,7 +141,7 @@ var impl = {
         break;
       }
     }
-    return Promise.resolve(photographer);
+    return photographer;
   } // Example event:
   // {
   //   schema: 'com.nordstrom/retail-stream/1-0-0',
@@ -164,45 +167,50 @@ exports.handler = function (event, context, callback) {
     result.photographers = [];
   }
 
-  impl.assignPhotographers(result).then(function (photographer) {
-    result.photographer = photographer;
+  var photographer = impl.assignPhotographers(result);
+  result.photographer = photographer;
 
-    if (result.photographer) {
-      result.photographers.push(result.photographer.id);
-      result.assigned = 'true';
-      result.assignmentComplete = 'false';
+  if (result.photographer) {
+    result.photographers.push(result.photographer.id);
+    result.assigned = 'true';
+    result.assignmentComplete = 'false';
 
-      var params = {
-        FunctionName: 'product-photos-message-dev-message',
-        InvocationType: "RequestResponse",
-        Payload:  JSON.stringify(result)
-      };
-      lambda.invoke(params, function(r) {
-        callback(r)
-      });
-    } else {
-      result.assigned = 'false';
-      var params = {
-        FunctionName: 'assign-product-photos-dev-assign',
-        InvocationType: "RequestResponse",
-        Payload:  JSON.stringify(result)
-      };
-      lambda.invoke(params, function(r) {
-        callback(r)
-      });
-      var params = {
-        FunctionName: 'product-photos-record-assignment-dev-record',
-        InvocationType: "RequestResponse",
-        Payload:  JSON.stringify(result)
-      };
-      lambda.invoke(params, function(r) {
-        callback(r)
-      })
-    }
+    var params = {
+      FunctionName: 'product-photos-message-dev-message',
+      InvocationType: "RequestResponse",
+      Payload: JSON.stringify(result)
+    };
+    lambda.invoke(params, function (r) {
+      callback(r)
+    });
+  } else {
+    result.assigned = 'false';
+    var params = {
+      FunctionName: 'assign-product-photos-dev-assign',
+      InvocationType: "RequestResponse",
+      Payload: JSON.stringify(result)
+    };
+    lambda.invoke(params, function (r) {
+      callback(r)
+    });
+    var params = {
+      FunctionName: 'product-photos-record-assignment-dev-record',
+      InvocationType: "RequestResponse",
+      Payload: JSON.stringify(result)
+    };
+    lambda.invoke(params, function (r) {
+      callback(r)
+    })
+  }
 
-    callback(null, result);
-  }).catch(function (ex) {
-    // console.log("".concat(constants.MODULE, " - Unexpected exception: ").concat(ex.stack));
-    callback(ex);
-  });
+  callback(null, result);
 };
+
+var ev = {
+  origin: TAJS_make('AnyStr'),
+  data: {
+    id: TAJS_make('AnyStr')
+  }
+};
+
+exports.handler( ev, null, function () {});

@@ -1,12 +1,12 @@
 frameworkVersion: '>=1.0.0 <2.0.0'
 
-service: ${self:custom.productPhotos.processorName}
+service: ${process-product-photos}
 
 custom:
   stage: dev
   private: ${file(../../private.yml)}
   helloRetail: ${file(../../helloRetail.yml)}
-  retailStream: ${file(../../retail-stream/serverless.yml)}
+  retailStream: ${file(../../retail-stream/resources.yml)}
   retailStreamVersion: 1
   productPhotos: ${file(../productPhotos.yml)}
 
