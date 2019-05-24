@@ -1,8 +1,11 @@
 package edu.rpi.serverless;
 
+import edu.rpi.serverless.graph_nodes.HttpGraphNode;
+import edu.rpi.serverless.graph_nodes.LambdaGraphNode;
+import edu.rpi.serverless.graph_nodes.ScheduledEventNode;
+import edu.rpi.serverless.yaml_model.ServerlessFile;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
-import java.nio.file.Path;
 import java.util.Arrays;
 
 public class ServerlessGraphNode {
@@ -11,7 +14,8 @@ public class ServerlessGraphNode {
         HTTP_ENDPOINT,
         DYNAMO_TABLE,
         OUTGOING_EMAIL,
-        STREAM
+        STREAM,
+        SCHEDULED_EVENT
     }
 
 
@@ -34,22 +38,27 @@ public class ServerlessGraphNode {
         }
     }
 
-    public static ServerlessGraphNode make(ServerlessYAMLParser.ServerlessFunctionTrigger event, String service_name) {
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessFunctionTrigger event, String service_name) {
         if (event.http != null) return make(event.http, service_name);
         if (event.stream != null) return make(event.stream);
+        if (event.schedule != null) return makeScheduledEvent(event.schedule);
         throw new NotImplementedException();
     }
 
-    public static ServerlessGraphNode make(ServerlessYAMLParser.ServerlessHTTPTrigger event, String service_name) {
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessHTTPTrigger event, String service_name) {
         return new HttpGraphNode(event.path, event.method, service_name);
     }
 
-    public static ServerlessGraphNode make(ServerlessYAMLParser.ServerlessStreamTrigger event) {
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessStreamTrigger event) {
         return new StreamGraphNode(event.arn);
     }
 
-    public static ServerlessGraphNode make(ServerlessYAMLParser.ServerlessFunctionDefinition func, String service) {
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessFunctionDefinition func, String service) {
         return new LambdaGraphNode(func.name, service);
+    }
+
+    public static ServerlessGraphNode makeScheduledEvent(String schedule) {
+        return new ScheduledEventNode(schedule);
     }
 
 

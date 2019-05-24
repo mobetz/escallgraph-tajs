@@ -7,6 +7,7 @@ import dk.brics.tajs.flowgraph.HostEnvSources;
 import dk.brics.tajs.flowgraph.SourceLocation;
 import dk.brics.tajs.js2flowgraph.FlowGraphBuilder;
 import dk.brics.tajs.util.Loader;
+import edu.rpi.serverless.yaml_model.ServerlessFile;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -22,70 +23,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ServerlessYAMLParser {
-    public static class ServerlessHTTPTrigger {
-        public ServerlessHTTPTrigger() {}
-
-        public String path;
-        public String method;
-        public boolean cors;
-    }
-
-    public static class ServerlessStreamTrigger {
-        public ServerlessStreamTrigger() {}
-
-        public String arn;
-        public boolean enabled;
-        public String startingPosition;
-    }
-    public static class ServerlessFunctionTrigger {
-        public ServerlessFunctionTrigger() {}
-
-        public ServerlessHTTPTrigger http;
-        public ServerlessStreamTrigger stream;
-    }
-
-    public static class ServerlessFunctionDefinition {
-        public ServerlessFunctionDefinition() {}
-        public ServerlessFile declared_file;
-        public String name;
-        public String handler;
-        public Map<String, String> environment;
-        public Collection<ServerlessFunctionTrigger> events;
-
-        public String get_fully_qualified_name() {
-            return String.format("%s-%s-%s", this.declared_file.service, "dev", this.name);
-        }
-    }
-
-    public static class ServerlessFile {
-        public ServerlessFile() {}
-
-        public Path file_location;
-        public String service;
-        public Map<String, ServerlessFunctionDefinition> functions;
-
-    }
-
-
-
-    public static ServerlessFile parse(Path path) {
-        Representer opts = new Representer();
-        opts.getPropertyUtils().setSkipMissingProperties(true);
-        Yaml parser = new Yaml(opts);
-
-        ServerlessFile doc = null;
-
-         File serverless_file = path.toFile();
-         try {
-             InputStream serverless_stream = new DataInputStream(new FileInputStream(serverless_file));
-             doc = parser.loadAs(serverless_stream, ServerlessFile.class);
-             doc.file_location =  serverless_file.toPath();
-         }
-         catch (FileNotFoundException e) {
-             System.out.println("WARNING: could not find serverless file : " + path);
-         }
-        return doc;
-    }
 
 
     public static class HandlerPath {
@@ -113,7 +50,7 @@ public class ServerlessYAMLParser {
         return new HandlerPath(filepath, method);
     }
 
-    public static FlowGraph generate_entrypoint_flowgraph(ServerlessFunctionDefinition serverless_func, Path serverless_filepath) {
+    public static FlowGraph generate_entrypoint_flowgraph(ServerlessFile.ServerlessFunctionDefinition serverless_func, Path serverless_filepath) {
 
         HandlerPath entrypoint = convert_handler_to_filepath(serverless_func.handler, serverless_filepath);
 
