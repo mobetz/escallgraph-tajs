@@ -172,9 +172,10 @@ public class ServerlessGraph {
         });
 
         parsed_files.forEach((yaml_contents) -> {
-            System.out.println("starting analysis of " + yaml_contents.file_location);
+            System.out.println("Entering config file: " + yaml_contents.file_location);
             yaml_contents.functions.keySet().forEach((fname) -> {
                 ServerlessFile.ServerlessFunctionDefinition f = yaml_contents.functions.get(fname);
+                System.out.println("Starting analysis of entrypoint: " + f.handler);
                 ServerlessGraphNode lambda_node = ServerlessGraph.instance.get_lambda_by_fname(f.get_fully_qualified_name());
                 ServerlessGraph.instance.set_current_lambda(lambda_node, yaml_contents.service, "dev");
 
@@ -218,9 +219,9 @@ public class ServerlessGraph {
                         .filter((m) -> !m.getMessage().contains("Dead assignment"))
                         .filter((m) -> !m.getMessage().contains("is never used"))
                         .collect(toSet());
-
-                System.out.println("finished analyzing " + yaml_contents.file_location + "\n\n");
+                System.out.println("Finished analyzing entrypoint: " + f.handler);
             });//functions.forEach
+            System.out.println("Leaving config file: " + yaml_contents.file_location + "\n\n");
         });//parsedFiles.forEach
 
 

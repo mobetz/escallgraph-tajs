@@ -2,6 +2,7 @@ package edu.rpi.serverless;
 
 import edu.rpi.serverless.graph_nodes.HttpGraphNode;
 import edu.rpi.serverless.graph_nodes.LambdaGraphNode;
+import edu.rpi.serverless.graph_nodes.S3GraphNode;
 import edu.rpi.serverless.graph_nodes.ScheduledEventNode;
 import edu.rpi.serverless.yaml_model.ServerlessFile;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -15,7 +16,8 @@ public class ServerlessGraphNode {
         DYNAMO_TABLE,
         OUTGOING_EMAIL,
         STREAM,
-        SCHEDULED_EVENT
+        SCHEDULED_EVENT,
+        S3_BUCKET
     }
 
 
@@ -42,6 +44,7 @@ public class ServerlessGraphNode {
         if (event.http != null) return make(event.http, service_name);
         if (event.stream != null) return make(event.stream);
         if (event.schedule != null) return makeScheduledEvent(event.schedule);
+        if (event.s3 != null) return make(event.s3);
         throw new NotImplementedException();
     }
 
@@ -55,6 +58,10 @@ public class ServerlessGraphNode {
 
     public static ServerlessGraphNode make(ServerlessFile.ServerlessFunctionDefinition func, String service) {
         return new LambdaGraphNode(func.name, service);
+    }
+
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessS3Trigger event) {
+        return new S3GraphNode(event.bucket, event.event);
     }
 
     public static ServerlessGraphNode makeScheduledEvent(String schedule) {

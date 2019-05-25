@@ -1,0 +1,1 @@
+../serverless/node_modules/.bin/babel ../serverless/targets/galleria/ --out-dir examples/babel-galleria --copy-files --presets=@babel/preset-env

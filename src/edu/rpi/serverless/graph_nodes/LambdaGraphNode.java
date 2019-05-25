@@ -3,6 +3,10 @@ package edu.rpi.serverless.graph_nodes;
 
 import edu.rpi.serverless.ServerlessGraphNode;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public class LambdaGraphNode extends ServerlessGraphNode {
     public String function_name;
     public String service_name;
@@ -14,8 +18,15 @@ public class LambdaGraphNode extends ServerlessGraphNode {
     }
 
 
+    public static String buildFullNameFromParts(String service, String phase, String function) {
+        String[] name_components = {service, phase, function};
+        return Arrays.asList(name_components).stream()
+                .filter((s) -> s!=null && !s.isEmpty())
+                .collect(Collectors.joining("-"));
+    }
+
     public String getServerlessFname() {
-        return String.format("%s-%s-%s", this.service_name, "dev", this.function_name);
+        return buildFullNameFromParts(this.service_name, "dev", this.function_name);
     }
 
     @Override

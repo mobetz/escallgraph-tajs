@@ -1,5 +1,6 @@
 package edu.rpi.serverless.yaml_model;
 
+import edu.rpi.serverless.graph_nodes.LambdaGraphNode;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
@@ -32,7 +33,7 @@ public class ServerlessFile {
         public Collection<ServerlessFunctionTrigger> events;
 
         public String get_fully_qualified_name() {
-            return String.format("%s-%s-%s", this.declared_file.service, "dev", this.name);
+            return LambdaGraphNode.buildFullNameFromParts(this.declared_file.service, "dev", this.name);
         }
     }
 
@@ -43,6 +44,7 @@ public class ServerlessFile {
         public ServerlessHTTPTrigger http;
         public ServerlessStreamTrigger stream;
         public String schedule;
+        public ServerlessS3Trigger s3;
     }
 
     public static class ServerlessHTTPTrigger {
@@ -62,11 +64,18 @@ public class ServerlessFile {
         public String startingPosition;
     }
 
+    public static class ServerlessS3Trigger {
+        public ServerlessS3Trigger() {}
+
+        public String bucket;
+        public String event;
+    }
 
     public static ServerlessFile from(CloudFormationFile cf_file) {
 
         ServerlessFile ret = new ServerlessFile();
         ret.file_location = cf_file.file_location;
+        ret.service = "app";
         ret.functions = new HashMap<>();
         Stream<Map.Entry<String, CloudFormationFile.CFResourceDefinition>> cf_functions = cf_file.Resources
                 .entrySet()
@@ -88,6 +97,11 @@ public class ServerlessFile {
                         break;
                     case "Schedule":
                         new_ev.schedule = eval.Properties.Schedule; //todo: cron() or rate()
+                        break;
+                    case "S3":
+                        new_ev.s3 = new ServerlessS3Trigger();
+                        new_ev.s3.bucket = eval.Properties.Bucket;
+                        new_ev.s3.event = eval.Properties.Events;
                         break;
                     default:
                         throw new NotImplementedException();
