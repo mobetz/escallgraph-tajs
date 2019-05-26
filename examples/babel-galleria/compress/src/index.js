@@ -107,3 +107,13 @@ function compress(inBuffer) {
     });
   });
 }
+
+exports.handler({
+  Records: [
+    {
+      s3: {
+        bucket: {name: 'RESIZED'},
+        object: {key: TAJS_make('AnyStr')}
+      }
+    }]
+}, null);

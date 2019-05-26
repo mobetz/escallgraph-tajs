@@ -55,13 +55,28 @@ DocumentClient.prototype.delete = function (params_obj, callback) {
 
 function S3() {}
 S3.prototype.getObject = function (params_obj, callback) {
-    TAJS_NOT_IMPLEMENTED('s3 getObject')
+    TAJS_serverless('s3_get', params_obj.Bucket);
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    var data = { Body: TAJS_make('AnyStr')};
+    if (callback) {
+        callback(err, data)
+    }
 };
 S3.prototype.listObjectsV2 = function (params_obj, callback) {
-    TAJS_NOT_IMPLEMENTED('s3 listObjects')
+    TAJS_serverless('s3_list', params_obj.Bucket);
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    var data = { Contents: TAJS_make('AnyStr')};
+    if (callback) {
+        callback(err, data)
+    }
 };
 S3.prototype.putObject = function (params_obj, callback) {
-    TAJS_NOT_IMPLEMENTED('s3 putObject')
+    TAJS_serverless('s3_put', params_obj.Bucket);
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    var data = { Body: TAJS_make('AnyStr')};
+    if (callback) {
+        callback(err, data)
+    }
 };
 S3.prototype.copyObject = function (params_obj, callback) {
     TAJS_NOT_IMPLEMENTED('s3 copyObject')

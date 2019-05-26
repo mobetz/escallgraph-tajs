@@ -57,6 +57,7 @@ import dk.brics.tajs.util.Collectors;
 import dk.brics.tajs.util.PathAndURLUtils;
 import edu.rpi.serverless.*;
 import edu.rpi.serverless.graph_nodes.DynamoGraphNode;
+import edu.rpi.serverless.graph_nodes.S3GraphNode;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -759,6 +760,13 @@ public class TAJSFunctionEvaluator {
                         case "lambda_invoke":
                             ServerlessGraphNode lambda_target = ServerlessGraph.instance.get_lambda_by_fname(params.getStr());
                             ServerlessGraph.instance.add_edge_from_current_to(lambda_target);
+                            break;
+                        case "s3_get":
+                        case "s3_list":
+                        case "s3_put":
+                            ServerlessGraphNode s3_target = new S3GraphNode(params.getStr(), "");
+                            ServerlessGraph.instance.add_node(s3_target);
+                            ServerlessGraph.instance.add_edge_from_current_to(s3_target);
                             break;
                         default:
                             throw new AnalysisException("Unhandled serverless event type");
