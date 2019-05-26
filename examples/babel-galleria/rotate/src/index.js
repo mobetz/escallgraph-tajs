@@ -6,22 +6,21 @@ var gm = require('gm').subClass({
   imageMagick: true
 });
 
-var path = require('path');
 
 var s3 = new aws.S3();
-var destBucket = process.env.DEST_BUCKET;
-var rotateDegrees = process.env.ROTATE_DEGREES;
-var backgroundColor = process.env.BACKGROUND_COLOR;
+var destBucket = 'ROTATED';
+var rotateDegrees = 50;
+var backgroundColor = 'grey';
 
 exports.handler = function main(event, context) {
   // Fail on mising data
   if (!destBucket || !backgroundColor || !rotateDegrees) {
-    context.fail('Error: Environment variable missing');
+    //context.fail('Error: Environment variable missing');
     return;
   }
 
   if (event.Records === null) {
-    context.fail('Error: Event has no records.');
+    //context.fail('Error: Event has no records.');
     return;
   } // Make a task for each record
 
@@ -33,12 +32,12 @@ exports.handler = function main(event, context) {
   }
 
   Promise.all(tasks).then(function () {
-    context.succeed();
+    //context.succeed();
   })["catch"](function (err) {
-    console.error('failed');
-    console.error(JSON.stringify(event));
-    console.error(JSON.stringify(context));
-    context.fail(err);
+    //console.error('failed');
+    //console.error(JSON.stringify(event));
+    //console.error(JSON.stringify(context));
+    //context.fail(err);
   });
 };
 
@@ -50,16 +49,16 @@ function conversionPromise(record, destBucket) {
 
     var destKey = srcKey;
     var conversion = 'rotating (' + rotateDegrees + '° ' + backgroundColor + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
-    console.log('Attempting: ' + conversion);
+    //console.log('Attempting: ' + conversion);
     get(srcBucket, srcKey).then(function (original) {
       return rotate(original);
     }).then(function (modified) {
       return put(destBucket, destKey, modified);
     }).then(function () {
-      console.log('Success: ' + conversion);
+      //console.log('Success: ' + conversion);
       return resolve('Success: ' + conversion);
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       return reject(error);
     });
   });
@@ -72,7 +71,7 @@ function get(srcBucket, srcKey) {
       Key: srcKey
     }, function (err, data) {
       if (err) {
-        console.error('Error getting object: ' + srcBucket + ':' + srcKey);
+        //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
         return reject(err);
       } else {
         resolve(data.Body);
@@ -89,7 +88,7 @@ function put(destBucket, destKey, data) {
       Body: data
     }, function (err, data) {
       if (err) {
-        console.error('Error putting object: ' + destBucket + ':' + destKey);
+        //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
         resolve(data);
@@ -104,7 +103,7 @@ function rotate(inBuffer) {
     gmToBuffer(data).then(function (outBuffer) {
       resolve(outBuffer);
     })["catch"](function (err) {
-      console.error('Error applying rotate');
+      //console.error('Error applying rotate');
       return reject(err);
     });
   });

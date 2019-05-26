@@ -2,20 +2,25 @@
 
 var aws = require('aws-sdk');
 
-var fs = require('fs');
 
-var mime = require('mime-types');
+var fs =  { readFile: function (path, callback) { callback(TAJS_make('AnyStr')); }};//require('fs');
+
+var mime = {
+    lookup: function(ext) {
+        return TAJS_make('AnyStr');
+    }
+};
 
 var path = require('path');
 
 var s3 = new aws.S3();
-var thumbBucket = process.env.THUMB_BUCKET;
-var fullBucket = process.env.FULL_BUCKET;
+var thumbBucket = 'THUMBS';
+var fullBucket = 'ORIGINALS';
 
 exports.handler = function main(event, context, lambdaCallback) {
   // Fail on mising data
   if (!thumbBucket || !fullBucket) {
-    context.fail('Error: Environment variable THUMB_BUCKET and/or FULL_BUCKET is missing');
+    //context.fail('Error: Environment variable THUMB_BUCKET and/or FULL_BUCKET is missing');
     return;
   }
 
@@ -34,14 +39,14 @@ function imageRoute(event, context, lambdaCallback) {
     get(bucket, key).then(function (data) {
       if (mimeType === 'image/png' || mimeType === 'image/jpeg' || mimeType === 'image/x-icon') {
         // Base 64 encode binary images
-        console.log('Serving binary ' + bucket + ':' + key + ' (' + mimeType + ')');
+        //console.log('Serving binary ' + bucket + ':' + key + ' (' + mimeType + ')');
         return done(200, data.toString('base64'), mimeType, lambdaCallback, true);
       } else {
-        console.log('Serving text ' + bucket + ':' + key + ' (' + mimeType + ')');
+        //console.log('Serving text ' + bucket + ':' + key + ' (' + mimeType + ')');
         return done(200, data.toString(), mimeType, lambdaCallback);
       }
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       done(500, '{"message":"error serving"}', 'application/json', lambdaCallback);
     });
   } else {
@@ -60,26 +65,26 @@ function servePublic(event, context, lambdaCallback) {
   } // Determine the file's path on lambda's filesystem
 
 
-  var publicPath = path.join(process.env.LAMBDA_TASK_ROOT, 'public');
+  var publicPath = '/public';
   var filePath = path.resolve(path.join(publicPath, urlPath));
   var mimeType = mime.lookup(filePath); // Make sure the user doesn't try to break out of the public directory
 
   if (!filePath.startsWith(publicPath)) {
-    console.log('forbidden', filePath, publicPath);
+    //console.log('forbidden', filePath, publicPath);
     return done(403, '{"message":"Forbidden"}', 'application/json', lambdaCallback);
   } // Attempt to read the file, give a 404 on error
 
 
   fs.readFile(filePath, function (err, data) {
     if (err) {
-      console.log('Unfound asset: ' + urlPath);
+      //console.log('Unfound asset: ' + urlPath);
       return done(404, '{"message":"Not Found"}', 'application/json', lambdaCallback);
     } else if (mimeType === 'image/png' || mimeType === 'image/jpeg' || mimeType === 'image/x-icon' || mimeType === 'application/font-woff' || mimeType === 'application/font-woff2' || mimeType === 'application/vnd.ms-fontobject' || mimeType === 'application/x-font-ttf') {
       // Base 64 encode binary files
-      console.log('Serving binary asset: ' + urlPath);
+      //console.log('Serving binary asset: ' + urlPath);
       return done(200, data.toString('base64'), mimeType, lambdaCallback, true);
     } else {
-      console.log('Serving text asset: ' + urlPath);
+      //console.log('Serving text asset: ' + urlPath);
       return done(200, data.toString(), mimeType, lambdaCallback);
     }
   });
@@ -93,12 +98,12 @@ function serveIndex(event, context, lambdaCallback) {
     base_path = '/' + event.requestContext.stage + '/';
   }
 
-  var filePath = path.join(process.env.LAMBDA_TASK_ROOT, 'public', 'index.template.html');
+  var filePath = path.join('app', 'public', 'index.template.html');
   var thumbBaseUrl = 'https://' + event.headers.Host + base_path + 'api/thumb/';
   var fullBaseUrl = 'https://' + event.headers.Host + base_path + 'api/full/';
   fs.readFile(filePath, function (err, data) {
     if (err) {
-      console.log('Failed to load template: ' + filePath);
+      //console.log('Failed to load template: ' + filePath);
       return done(500, '{"message":"internal server error"}', 'application/json', lambdaCallback);
     }
 
@@ -118,7 +123,7 @@ function serveIndex(event, context, lambdaCallback) {
       var output = data.toString().replace('{{photos}}', html);
       return done(200, output, 'text/html', lambdaCallback);
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       done(500, '{"message":"internal server error"}', 'application/json', lambdaCallback);
     });
   });
@@ -145,7 +150,7 @@ function get(srcBucket, srcKey) {
       Key: srcKey
     }, function (err, data) {
       if (err) {
-        console.error('Error getting object: ' + srcBucket + ':' + srcKey);
+        //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
         return reject(err);
       } else {
         resolve(data.Body);
@@ -163,7 +168,7 @@ function list(bucket) {
       Bucket: bucket
     }, function (err, data) {
       if (err) {
-        console.error('Error listing objects: ' + bucket);
+        ////console.error('Error listing objects: ' + bucket);
         return reject(err);
       } else {
         resolve(data.Contents);

@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: Transforms images by resizing to a configured max dimension
 Resources:
-  transform:
+  resize:
     Type: AWS::Serverless::Function
     Properties:
       Description: Transforms images by resizing to a configured max dimension
@@ -22,8 +22,7 @@ Resources:
         upload:
           Type: S3
           Properties:
-            Bucket:
-              Ref: source
+            Bucket: ROTATED
             Events: s3:ObjectCreated:*
       Environment:
         Variables:

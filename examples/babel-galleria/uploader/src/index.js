@@ -1,20 +1,21 @@
 "use strict";
 
 var aws = require('aws-sdk');
-
-var fs = require('fs');
-
-var mime = require('mime-types');
-
+var fs =  { readFile: function (path, callback) { callback(TAJS_make('AnyStr')); }};//require('fs');
+var mime = {
+  lookup: function(ext) {
+    return TAJS_make('AnyStr');
+  }
+};
 var path = require('path');
 
 var s3 = new aws.S3();
-var destBucket = process.env.DEST_BUCKET;
+var destBucket = 'ORIGINALS';
 
 exports.handler = function main(event, context, lambdaCallback) {
   // Fail on mising data
   if (!destBucket) {
-    context.fail('Error: Environment variable DEST_BUCKET missing');
+    //context.fail('Error: Environment variable DEST_BUCKET missing');
     return;
   }
 
@@ -32,18 +33,18 @@ function fileRoute(event, context, lambdaCallback) {
     var body = event.body;
 
     if (event.isBase64Encoded) {
-      console.log('body is base-64 encoded');
+      //console.log('body is base-64 encoded');
       body = Buffer.from(event.body, 'base64');
     }
 
     put(destBucket, key, body).then(function () {
       message = 'Saved ' + destBucket + ':' + key;
-      console.log(message);
+      //console.log(message);
       done(200, JSON.stringify({
         message: message
       }), 'application/json', lambdaCallback);
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       done(500, '{"message":"error saving"}', 'application/json', lambdaCallback);
     });
   } else {
@@ -62,12 +63,12 @@ function servePublic(event, context, lambdaCallback) {
   } // Determine the file's path on lambda's filesystem
 
 
-  var publicPath = path.join(process.env.LAMBDA_TASK_ROOT, 'public');
+  var publicPath = path.join('app', 'public');
   var filePath = path.resolve(path.join(publicPath, urlPath));
   var mimeType = mime.lookup(filePath); // Make sure the user doesn't try to break out of the public directory
 
   if (!filePath.startsWith(publicPath)) {
-    console.log('forbidden', filePath, publicPath);
+    //console.log('forbidden', filePath, publicPath);
     return done(403, '{"message":"Forbidden"}', 'application/json', lambdaCallback);
   } // Attempt to read the file, give a 404 on error
 
@@ -93,7 +94,7 @@ function serveIndex(event, context, lambdaCallback) {
     base_path = '/' + event.requestContext.stage + '/';
   }
 
-  var filePath = path.join(process.env.LAMBDA_TASK_ROOT, 'public/index.html'); // Read the file, fill in base_path and serve, or 404 on error
+  var filePath = path.join('app', 'public/index.html'); // Read the file, fill in base_path and serve, or 404 on error
 
   fs.readFile(filePath, function (err, data) {
     if (err) {
@@ -127,7 +128,7 @@ function put(destBucket, destKey, data) {
       Body: data
     }, function (err, data) {
       if (err) {
-        console.error('Error putting object: ' + destBucket + ':' + destKey);
+        //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
         resolve(data);

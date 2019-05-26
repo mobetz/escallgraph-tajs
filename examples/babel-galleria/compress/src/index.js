@@ -2,25 +2,26 @@
 
 var aws = require('aws-sdk');
 
-var gm = require('gm').subClass({
+var gmlib = require('gm');
+
+var gm = gmlib.subClass({
   imageMagick: true
 });
 
-var path = require('path');
 
 var s3 = new aws.S3();
-var destBucket = process.env.DEST_BUCKET;
-var quality = process.env.QUALITY;
+var destBucket = 'THUMBS';
+var quality = 90;
 
 exports.handler = function main(event, context) {
   // Fail on mising data
   if (!destBucket || !quality) {
-    context.fail('Error: Environment variable DEST_BUCKET or QUALITY missing');
+    //context.fail('Error: Environment variable DEST_BUCKET or QUALITY missing');
     return;
   }
 
   if (event.Records === null) {
-    context.fail('Error: Event has no records.');
+    //context.fail('Error: Event has no records.');
     return;
   } // Make a task for each record
 
@@ -32,9 +33,9 @@ exports.handler = function main(event, context) {
   }
 
   Promise.all(tasks).then(function () {
-    context.succeed();
+    //context.succeed();
   })["catch"](function (err) {
-    context.fail(err);
+    //context.fail(err);
   });
 };
 
@@ -46,16 +47,16 @@ function conversionPromise(record, destBucket) {
 
     var destKey = srcKey;
     var conversion = 'compressing (quality ' + quality + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
-    console.log('Attempting: ' + conversion);
+    //console.log('Attempting: ' + conversion);
     get(srcBucket, srcKey).then(function (original) {
       return compress(original);
     }).then(function (modified) {
       return put(destBucket, destKey, modified);
     }).then(function () {
-      console.log('Success: ' + conversion);
+      //console.log('Success: ' + conversion);
       return resolve('Success: ' + conversion);
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       return reject(error);
     });
   });
@@ -68,7 +69,7 @@ function get(srcBucket, srcKey) {
       Key: srcKey
     }, function (err, data) {
       if (err) {
-        console.error('Error getting object: ' + srcBucket + ':' + srcKey);
+        //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
         return reject(err);
       } else {
         resolve(data.Body);
@@ -85,7 +86,7 @@ function put(destBucket, destKey, data) {
       Body: data
     }, function (err, data) {
       if (err) {
-        console.error('Error putting object: ' + destBucket + ':' + destKey);
+        //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
         resolve(data);
@@ -98,7 +99,7 @@ function compress(inBuffer) {
   return new Promise(function (resolve, reject) {
     gm(inBuffer).compress('JPEG').quality(quality).toBuffer('JPG', function (err, outBuffer) {
       if (err) {
-        console.error('Error applying compression');
+        //console.error('Error applying compression');
         return reject(err);
       } else {
         resolve(outBuffer);

@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 Description: Transforms images by rotating a configured degree
 Resources:
-  transform:
+  rotate:
     Type: AWS::Serverless::Function
     Properties:
       Description: Transforms images by rotating a configured degree
@@ -22,8 +22,7 @@ Resources:
         upload:
           Type: S3
           Properties:
-            Bucket:
-              Ref: source
+            Bucket: ORIGINALS
             Events: s3:ObjectCreated:*
       Environment:
         Variables:

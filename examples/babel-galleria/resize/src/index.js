@@ -6,21 +6,20 @@ var gm = require('gm').subClass({
   imageMagick: true
 });
 
-var path = require('path');
 
 var s3 = new aws.S3();
-var destBucket = process.env.DEST_BUCKET;
-var maxDimension = process.env.MAX_DIMENSION;
+var destBucket = 'RESIZED';
+var maxDimension = 1024;
 
 exports.handler = function main(event, context) {
   // Fail on mising data
   if (!destBucket || !maxDimension) {
-    context.fail('Error: Environment variable DEST_BUCKET missing');
+    //context.fail('Error: Environment variable DEST_BUCKET missing');
     return;
   }
 
   if (event.Records === null) {
-    context.fail('Error: Event has no records.');
+    //context.fail('Error: Event has no records.');
     return;
   } // Make a task for each record
 
@@ -32,9 +31,9 @@ exports.handler = function main(event, context) {
   }
 
   Promise.all(tasks).then(function () {
-    context.succeed();
+    //context.succeed();
   })["catch"](function (err) {
-    context.fail(err);
+    //context.fail(err);
   });
 };
 
@@ -46,16 +45,16 @@ function conversionPromise(record, destBucket) {
 
     var destKey = srcKey;
     var conversion = 'resizing (max dimension ' + maxDimension + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
-    console.log('Attempting: ' + conversion);
+    //console.log('Attempting: ' + conversion);
     get(srcBucket, srcKey).then(function (original) {
       return resize(original);
     }).then(function (modified) {
       return put(destBucket, destKey, modified);
     }).then(function () {
-      console.log('Success: ' + conversion);
+      //console.log('Success: ' + conversion);
       return resolve('Success: ' + conversion);
     })["catch"](function (error) {
-      console.error(error);
+      //console.error(error);
       return reject(error);
     });
   });
@@ -68,7 +67,7 @@ function get(srcBucket, srcKey) {
       Key: srcKey
     }, function (err, data) {
       if (err) {
-        console.error('Error getting object: ' + srcBucket + ':' + srcKey);
+        //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
         return reject(err);
       } else {
         resolve(data.Body);
@@ -85,7 +84,7 @@ function put(destBucket, destKey, data) {
       Body: data
     }, function (err, data) {
       if (err) {
-        console.error('Error putting object: ' + destBucket + ':' + destKey);
+        //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
         resolve(data);
@@ -98,7 +97,7 @@ function resize(inBuffer) {
   return new Promise(function (resolve, reject) {
     gm(inBuffer).resize(maxDimension, maxDimension).toBuffer('JPG', function (err, outBuffer) {
       if (err) {
-        console.error('Error applying resize');
+        //console.error('Error applying resize');
         return reject(err);
       } else {
         resolve(outBuffer);
