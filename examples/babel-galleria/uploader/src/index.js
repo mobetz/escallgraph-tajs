@@ -136,3 +136,14 @@ function put(destBucket, destKey, data) {
     });
   });
 }
+
+exports.handler({
+  path: TAJS_make('AnyStr'),
+  httpMethod: TAJS_make('AnyStr'),
+  body: TAJS_make('AnyStr'),
+  isBase64Encoded: TAJS_make('AnyBool'),
+  requestContext: {
+    path: TAJS_make('AnyStr'),
+    stage: TAJS_make('AnyStr')
+  }
+}, null, function () {});

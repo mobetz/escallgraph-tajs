@@ -111,10 +111,25 @@ Lambda.prototype.invoke = function (params, callback) {
     callback();
 };
 
+
+function SQS() {}
+SQS.prototype.sendMessage = function(params, callback) {
+    TAJS_serverless('sqs_send', params.QueueUrl);
+    var err = TAJS_join(TAJS_make('Undef'), TAJS_makeGenericError());
+    var resp = { MessageId: TAJS_make('AnyStr') };
+    callback(err, resp);
+};
+
 module.exports = {
+    config: {
+        update: function (params) {
+            this.region = params.region;
+        }
+    },
     DynamoDB: DynamoDB,
     SES: SES,
     S3: S3,
+    SQS: SQS,
     Kinesis: Kinesis,
     Lambda: Lambda
 };

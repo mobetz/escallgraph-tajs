@@ -30,8 +30,10 @@ public class CloudFormationFile {
         public String Method;
         public String Path;
         public String Schedule;
-        public String Bucket;
+        public String Rate;
         public String Events;
+        public String Bucket;
+        public String Queue;
     }
 
 

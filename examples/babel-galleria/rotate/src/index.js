@@ -31,18 +31,17 @@ exports.handler = function main(event, context) {
     tasks.push(conversionPromise(event.Records[i], destBucket));
   }
 
-  Promise.all(tasks).then(function () {
+  //Promise.all(tasks).then(function () {
     //context.succeed();
-  })["catch"](function (err) {
+ // })["catch"](function (err) {
     //console.error('failed');
     //console.error(JSON.stringify(event));
     //console.error(JSON.stringify(context));
     //context.fail(err);
-  });
+  //});
 };
 
 function conversionPromise(record, destBucket) {
-  return new Promise(function (resolve, reject) {
     // The source bucket and source key are part of the event data
     var srcBucket = record.s3.bucket.name;
     var srcKey = decodeURIComponent(record.s3.object.key.replace(/\+/g, " ")); // Modify destKey if an alternate copy location is preferred
@@ -50,38 +49,30 @@ function conversionPromise(record, destBucket) {
     var destKey = srcKey;
     var conversion = 'rotating (' + rotateDegrees + '° ' + backgroundColor + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
     //console.log('Attempting: ' + conversion);
-    get(srcBucket, srcKey).then(function (original) {
-      return rotate(original);
-    }).then(function (modified) {
-      return put(destBucket, destKey, modified);
-    }).then(function () {
-      //console.log('Success: ' + conversion);
-      return resolve('Success: ' + conversion);
-    })["catch"](function (error) {
-      //console.error(error);
-      return reject(error);
-    });
+    get(srcBucket, srcKey, function (original) {
+      rotate(original, function (modified) {
+        put(destBucket, destKey, modified, function () {
+
+        });
+      });
   });
 }
 
-function get(srcBucket, srcKey) {
-  return new Promise(function (resolve, reject) {
+function get(srcBucket, srcKey, cb) {
     s3.getObject({
       Bucket: srcBucket,
       Key: srcKey
     }, function (err, data) {
       if (err) {
         //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
-        return reject(err);
+        //return reject(err);
       } else {
-        resolve(data.Body);
+        cb(data.Body);
       }
     });
-  });
 }
 
-function put(destBucket, destKey, data) {
-  return new Promise(function (resolve, reject) {
+function put(destBucket, destKey, data, cb) {
     s3.putObject({
       Bucket: destBucket,
       Key: destKey,
@@ -91,30 +82,23 @@ function put(destBucket, destKey, data) {
         //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
-        resolve(data);
+        cb(data);
       }
     });
-  });
 }
 
-function rotate(inBuffer) {
-  return new Promise(function (resolve, reject) {
+function rotate(inBuffer, cb) {
     var data = gm(inBuffer).rotate(backgroundColor, rotateDegrees);
-    gmToBuffer(data).then(function (outBuffer) {
-      resolve(outBuffer);
-    })["catch"](function (err) {
-      //console.error('Error applying rotate');
-      return reject(err);
+    gmToBuffer(data, function (outBuffer) {
+      cb(outBuffer);
     });
-  });
 } // From jescalan on https://github.com/aheckmann/gm/issues/572
 
 
-function gmToBuffer(data) {
-  return new Promise(function (resolve, reject) {
+function gmToBuffer(data, cb) {
     data.stream(function (err, stdout, stderr) {
       if (err) {
-        return reject(err);
+        //return reject(err);
       }
 
       var chunks = [];
@@ -124,11 +108,22 @@ function gmToBuffer(data) {
       // but this is a promise so you'll have to deal with them one at a time
 
       stdout.once('end', function () {
-        resolve(Buffer.concat(chunks));
+        cb(chunks);
       });
       stderr.once('data', function (data) {
-        reject(String(data));
+        //reject(String(data));
       });
     });
-  });
 }
+
+
+
+exports.handler({
+  Records: [
+    {
+      s3: {
+        bucket: {name: 'ORIGINALS'},
+        object: {key: TAJS_make('AnyStr')}
+      }
+    }]
+}, null);

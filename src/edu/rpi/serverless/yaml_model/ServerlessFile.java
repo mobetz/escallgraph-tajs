@@ -45,6 +45,7 @@ public class ServerlessFile {
         public ServerlessStreamTrigger stream;
         public String schedule;
         public ServerlessS3Trigger s3;
+        public ServerlessSQSTrigger sqs;
     }
 
     public static class ServerlessHTTPTrigger {
@@ -71,6 +72,12 @@ public class ServerlessFile {
         public String event;
     }
 
+    public static class ServerlessSQSTrigger {
+        public ServerlessSQSTrigger() {}
+
+        public String arn;
+    }
+
     public static ServerlessFile from(CloudFormationFile cf_file) {
 
         ServerlessFile ret = new ServerlessFile();
@@ -87,28 +94,33 @@ public class ServerlessFile {
             new_val.name = e.getKey();
             new_val.handler = e.getValue().Properties.Handler;
             new_val.events = new ArrayList<>();
-            e.getValue().Properties.Events.forEach((ename, eval) -> {
-                ServerlessFunctionTrigger new_ev = new ServerlessFunctionTrigger();
-                switch (eval.Type) {
-                    case "Api":
-                        new_ev.http = new ServerlessHTTPTrigger();
-                        new_ev.http.method = eval.Properties.Method;
-                        new_ev.http.path = eval.Properties.Path;
-                        break;
-                    case "Schedule":
-                        new_ev.schedule = eval.Properties.Schedule; //todo: cron() or rate()
-                        break;
-                    case "S3":
-                        new_ev.s3 = new ServerlessS3Trigger();
-                        new_ev.s3.bucket = eval.Properties.Bucket;
-                        new_ev.s3.event = eval.Properties.Events;
-                        break;
-                    default:
-                        throw new NotImplementedException();
-                }
-                new_val.events.add(new_ev);
-            });
-
+            if (e.getValue().Properties.Events != null) {
+                e.getValue().Properties.Events.forEach((ename, eval) -> {
+                    ServerlessFunctionTrigger new_ev = new ServerlessFunctionTrigger();
+                    switch (eval.Type) {
+                        case "Api":
+                            new_ev.http = new ServerlessHTTPTrigger();
+                            new_ev.http.method = eval.Properties.Method;
+                            new_ev.http.path = eval.Properties.Path;
+                            break;
+                        case "Schedule":
+                            new_ev.schedule = (eval.Properties.Schedule != null) ? eval.Properties.Schedule : eval.Properties.Rate; //todo: cron() or rate()
+                            break;
+                        case "S3":
+                            new_ev.s3 = new ServerlessS3Trigger();
+                            new_ev.s3.bucket = eval.Properties.Bucket;
+                            new_ev.s3.event = eval.Properties.Events;
+                            break;
+                        case "SQS":
+                            new_ev.sqs = new ServerlessSQSTrigger();
+                            new_ev.sqs.arn = eval.Properties.Queue;
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    new_val.events.add(new_ev);
+                });
+            }
             ret.functions.put(e.getKey(), new_val);
         });
 

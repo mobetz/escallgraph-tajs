@@ -6,6 +6,7 @@ import dk.brics.tajs.flowgraph.FlowGraph;
 import dk.brics.tajs.monitoring.*;
 import dk.brics.tajs.options.OptionValues;
 import dk.brics.tajs.options.Options;
+import dk.brics.tajs.options.TAJSEnvironmentConfig;
 import dk.brics.tajs.solver.Message;
 import edu.rpi.serverless.yaml_model.CloudFormationFile;
 import edu.rpi.serverless.yaml_model.ServerlessFile;
@@ -134,6 +135,7 @@ public class ServerlessGraph {
             opts.parse(args);
             opts.checkConsistency();
             Options.set(opts);
+            TAJSEnvironmentConfig.init();
         } catch (CmdLineException e) {
             System.out.println("INVALID OPTS: " + e.getMessage());
         }

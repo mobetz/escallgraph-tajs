@@ -18,6 +18,22 @@ function gm(imageData) {
         return self;
     };
 
+    this.stream = function(cb) {
+      cb({}, {
+          on: function (ev, chunk_cb) {
+          chunk_cb(TAJS_make('AnyStr'))
+          },
+          once: function (ev, chunk_cb) {
+              chunk_cb(TAJS_make('AnyStr'))
+          }}, {
+          on: function (ev, chunk_cb) {
+              chunk_cb(TAJS_make('AnyStr'))
+          },
+          once: function (ev, chunk_cb) {
+              chunk_cb(TAJS_make('AnyStr'))
+          }});
+    };
+
     this.toBuffer = function(format, cb) {
         cb(TAJS_make('AnyStr'))
     }

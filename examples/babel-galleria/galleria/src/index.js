@@ -33,7 +33,7 @@ exports.handler = function main(event, context, lambdaCallback) {
 
 function imageRoute(event, context, lambdaCallback) {
   if (event.httpMethod === 'GET') {
-    var bucket = event.path.startsWith('/api/thumb/') ? thumbBucket : fullBucket;
+    var bucket = thumbBucket; //: fullBucket;
     var key = event.path.replace(/\/api\/(full|thumb)\//, '');
     var mimeType = mime.lookup(key);
     get(bucket, key).then(function (data) {
@@ -176,3 +176,9 @@ function list(bucket) {
     });
   });
 }
+
+exports.handler( {
+  path: TAJS_make('AnyStr'),
+  httpMethod: TAJS_make('AnyStr'),
+  requestContext: {path: TAJS_make('AnyStr'), stage: TAJS_make('AnyStr')},
+  headers: {Host: TAJS_make('AnyStr')}}, null, function () {});

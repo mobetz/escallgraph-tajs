@@ -38,7 +38,6 @@ exports.handler = function main(event, context) {
 };
 
 function conversionPromise(record, destBucket) {
-  return new Promise(function (resolve, reject) {
     // The source bucket and source key are part of the event data
     var srcBucket = record.s3.bucket.name;
     var srcKey = decodeURIComponent(record.s3.object.key.replace(/\+/g, " ")); // Modify destKey if an alternate copy location is preferred
@@ -46,38 +45,31 @@ function conversionPromise(record, destBucket) {
     var destKey = srcKey;
     var conversion = 'resizing (max dimension ' + maxDimension + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
     //console.log('Attempting: ' + conversion);
-    get(srcBucket, srcKey).then(function (original) {
-      return resize(original);
-    }).then(function (modified) {
-      return put(destBucket, destKey, modified);
-    }).then(function () {
-      //console.log('Success: ' + conversion);
-      return resolve('Success: ' + conversion);
-    })["catch"](function (error) {
-      //console.error(error);
-      return reject(error);
-    });
+    get(srcBucket, srcKey, function (original) {
+      resize(original, function (modified) {
+        put(destBucket, destKey, modified, function () {
+          resolve('Success: ' + conversion);
+        })
+      })
   });
 }
 
-function get(srcBucket, srcKey) {
-  return new Promise(function (resolve, reject) {
+
+function get(srcBucket, srcKey, cb) {
     s3.getObject({
       Bucket: srcBucket,
       Key: srcKey
     }, function (err, data) {
       if (err) {
         //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
-        return reject(err);
+        //return reject(err);
       } else {
-        resolve(data.Body);
+        cb(data.Body);
       }
     });
-  });
 }
 
-function put(destBucket, destKey, data) {
-  return new Promise(function (resolve, reject) {
+function put(destBucket, destKey, data, cb) {
     s3.putObject({
       Bucket: destBucket,
       Key: destKey,
@@ -85,23 +77,31 @@ function put(destBucket, destKey, data) {
     }, function (err, data) {
       if (err) {
         //console.error('Error putting object: ' + destBucket + ':' + destKey);
-        return reject(err);
+        //return reject(err);
       } else {
-        resolve(data);
+        cb(data);
       }
     });
-  });
 }
 
-function resize(inBuffer) {
-  return new Promise(function (resolve, reject) {
+function resize(inBuffer, cb) {
     gm(inBuffer).resize(maxDimension, maxDimension).toBuffer('JPG', function (err, outBuffer) {
       if (err) {
         //console.error('Error applying resize');
-        return reject(err);
+        //return reject(err);
       } else {
-        resolve(outBuffer);
+        cb(outBuffer);
       }
     });
-  });
 }
+
+
+exports.handler({
+  Records: [
+    {
+      s3: {
+        bucket: {name: 'ROTATED'},
+        object: {key: TAJS_make('AnyStr')}
+      }
+    }]
+}, null);

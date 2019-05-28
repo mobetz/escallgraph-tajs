@@ -48,22 +48,17 @@ function conversionPromise(record, destBucket) {
     var destKey = srcKey;
     var conversion = 'compressing (quality ' + quality + '): ' + srcBucket + ':' + srcKey + ' to ' + destBucket + ':' + destKey;
     //console.log('Attempting: ' + conversion);
-    get(srcBucket, srcKey).then(function (original) {
-      return compress(original);
-    }).then(function (modified) {
-      return put(destBucket, destKey, modified);
-    }).then(function () {
-      //console.log('Success: ' + conversion);
-      return resolve('Success: ' + conversion);
-    })["catch"](function (error) {
-      //console.error(error);
-      return reject(error);
+    get(srcBucket, srcKey, function (data) {
+      compress(data, function(modified) {
+        put(destBucket, destKey, modified, function () {
+          resolve('Success: ' + conversion);
+        });
+      })
     });
   });
 }
 
-function get(srcBucket, srcKey) {
-  return new Promise(function (resolve, reject) {
+function get(srcBucket, srcKey, cb) {
     s3.getObject({
       Bucket: srcBucket,
       Key: srcKey
@@ -72,14 +67,12 @@ function get(srcBucket, srcKey) {
         //console.error('Error getting object: ' + srcBucket + ':' + srcKey);
         return reject(err);
       } else {
-        resolve(data.Body);
+        cb(data.Body);
       }
     });
-  });
 }
 
-function put(destBucket, destKey, data) {
-  return new Promise(function (resolve, reject) {
+function put(destBucket, destKey, data, cb) {
     s3.putObject({
       Bucket: destBucket,
       Key: destKey,
@@ -89,23 +82,20 @@ function put(destBucket, destKey, data) {
         //console.error('Error putting object: ' + destBucket + ':' + destKey);
         return reject(err);
       } else {
-        resolve(data);
+        cb(data);
       }
     });
-  });
 }
 
-function compress(inBuffer) {
-  return new Promise(function (resolve, reject) {
-    gm(inBuffer).compress('JPEG').quality(quality).toBuffer('JPG', function (err, outBuffer) {
+function compress(inBuffer, cb) {
+  gm(inBuffer).compress('JPEG').quality(quality).toBuffer('JPG', function (err, outBuffer) {
       if (err) {
         //console.error('Error applying compression');
         return reject(err);
       } else {
-        resolve(outBuffer);
+        cb(outBuffer);
       }
     });
-  });
 }
 
 exports.handler({

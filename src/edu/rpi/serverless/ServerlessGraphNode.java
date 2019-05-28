@@ -1,9 +1,6 @@
 package edu.rpi.serverless;
 
-import edu.rpi.serverless.graph_nodes.HttpGraphNode;
-import edu.rpi.serverless.graph_nodes.LambdaGraphNode;
-import edu.rpi.serverless.graph_nodes.S3GraphNode;
-import edu.rpi.serverless.graph_nodes.ScheduledEventNode;
+import edu.rpi.serverless.graph_nodes.*;
 import edu.rpi.serverless.yaml_model.ServerlessFile;
 import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
@@ -17,13 +14,15 @@ public class ServerlessGraphNode {
         OUTGOING_EMAIL,
         STREAM,
         SCHEDULED_EVENT,
-        S3_BUCKET
+        S3_BUCKET,
+        SQS_QUEUE
     }
 
 
     public enum ArnTypes {
         KINESIS("kinesis"),
         DYNAMO("dynamodb"),
+        SQS("sqs"),
         UNKNOWN("UNKNOWN_ARN_TYPE");
 
         private String arn_segment;
@@ -45,6 +44,7 @@ public class ServerlessGraphNode {
         if (event.stream != null) return make(event.stream);
         if (event.schedule != null) return makeScheduledEvent(event.schedule);
         if (event.s3 != null) return make(event.s3);
+        if (event.sqs != null) return make(event.sqs);
         throw new NotImplementedException();
     }
 
@@ -62,6 +62,10 @@ public class ServerlessGraphNode {
 
     public static ServerlessGraphNode make(ServerlessFile.ServerlessS3Trigger event) {
         return new S3GraphNode(event.bucket, event.event);
+    }
+
+    public static ServerlessGraphNode make(ServerlessFile.ServerlessSQSTrigger event) {
+        return new SQSGraphNode(event.arn);
     }
 
     public static ServerlessGraphNode makeScheduledEvent(String schedule) {

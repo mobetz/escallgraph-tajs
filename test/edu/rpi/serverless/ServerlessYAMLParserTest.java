@@ -58,7 +58,7 @@ public class ServerlessYAMLParserTest {
 
     @Test
     public void sandbox() {
-        Path root = Paths.get("examples/babel-galleria");
+        Path root = Paths.get("examples/babel-lambdascale");
         ServerlessGraph graph = ServerlessGraph.generate_graph_for_path(root);
         graph.to_dotfile(System.out);
 
