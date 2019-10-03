@@ -1,10 +1,11 @@
 'use strict';
 
-var dynamoDbLib = require('../src/dynamoDbLib');
 
-var _require = require('../src/responseLib'),
-    success = _require.success,
-    failure = _require.failure;
+//var _require = require('../src/responseLib'),
+//    success = _require.success,
+//    failure = _require.failure;
+
+var dynamoDbLib = require('/home/mwobee/Desktop/TAJS/examples/babel-citizendispatch/server/src/dynamoDbLib.js');
 
 exports.handler = function (event, context, callback) {
   var id;
