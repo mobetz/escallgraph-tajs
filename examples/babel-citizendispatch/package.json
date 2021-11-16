@@ -37,7 +37,7 @@
   },
   "homepage": "https://github.com/CitizenDispatch/citizen-dispatch-service",
   "dependencies": {
-    "aws-sdk": "^2.296.0",
+    "aws-sdk": "^2.814.0",
     "dynamodb-update-expression": "^0.1.21",
     "geolib": "^2.0.24",
     "graphql": "^0.13.2",
